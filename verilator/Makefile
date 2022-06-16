@@ -54,10 +54,11 @@ CC_OPT = -O
 
 V_SRC = \
 	sim.v \
-	$(RTL)/rcastudioii.v 
-	$(RTL)/cdp1802.v 
+	$(RTL)/rcastudioii.v \
+	$(RTL)/cdp1802.v \
 	$(RTL)/cdp1861.v \
-	$(RTL)/bram.v 
+	$(RTL)/bram.v \
+	$(RTL)/dma.v \
 	$(RTL)/rom.v
 
 C_SRC = \
