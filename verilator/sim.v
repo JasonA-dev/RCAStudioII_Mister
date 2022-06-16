@@ -79,6 +79,7 @@ module top(
    end
    */
 
+
 rcastudioii rcastudio
 (
 	.clk(clk_48),
@@ -96,5 +97,6 @@ rcastudioii rcastudio
 
 	.video(video)
 );
+
 
 endmodule

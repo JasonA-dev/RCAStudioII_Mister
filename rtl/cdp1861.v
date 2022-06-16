@@ -56,6 +56,13 @@ reg HSync;
 
 reg [7:0] VideoShiftReg;
 
+reg [7:0] cpu_din;
+reg [7:0] cpu_dout;
+wire cpu_inp;
+wire cpu_out;
+
+reg unsupported;
+
 always @(posedge clock) begin
 
   if(~reset) begin
@@ -137,20 +144,21 @@ always @(negedge clock) begin
 
 end
 
+
 cdp1802 cdp1802 (
   .clock(clock),
   .resetq(reset),
 
-  .Q(),          
-  .EF(),         
+  .Q(),          // O external pin Q
+  .EF(),         // I 3:0 external flags EF1 to EF4
 
-  .io_din(),     
-  .io_dout(),    
-  .io_n(),       
-  .io_inp(),     
-  .io_out(),     
+  .io_din(cpu_din),     
+  .io_dout(cpu_dout),    
+  .io_n(),       // O 2:0 IO control lines: N2,N1,N0
+  .io_inp(cpu_inp),     // O IO input signal
+  .io_out(cpu_out),     // O IO output signal
 
-  .unsupported(),
+  .unsupported(unsupported),
 
   .ram_rd(ram_rd),     
   .ram_wr(ram_wr),     
@@ -158,5 +166,6 @@ cdp1802 cdp1802 (
   .ram_q(ram_q),      
   .ram_d(ram_d)      
 );
+
 
 endmodule

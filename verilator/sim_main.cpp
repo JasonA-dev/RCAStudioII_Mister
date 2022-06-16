@@ -319,6 +319,27 @@ int main(int argc, char** argv, char** env) {
 		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__ram__DOT__memory, 512, 0);
 		ImGui::End();
 
+		// Debug 1802 cpu
+		ImGui::Begin("CDP 1802 Registers");
+		ImGui::Text("P:       0x%04X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__P);	
+		ImGui::Text("X:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__X);
+		ImGui::Text("R:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__R);	
+		ImGui::Text("Rrd:     0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__Rrd);	
+		ImGui::Text("Rwd:     0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__Rwd);	
+		ImGui::Text("D:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__D);
+		ImGui::Text("DF:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__DF);	
+		ImGui::Text("B:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__B);	
+		ImGui::Text("ram_q:   0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__ram_q);	
+		ImGui::Text("I:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__I);	
+		ImGui::Text("N:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__N);	
+		ImGui::Spacing();	
+		ImGui::Text("io_din:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__io_din);	
+		ImGui::Text("io_dout: 0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__io_dout);
+		ImGui::Text("io_inp:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__io_inp);	
+		ImGui::Text("io_out:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__io_out);		
+		ImGui::Spacing();		
+		ImGui::End();
+
 		// Trace/VCD window
 		ImGui::Begin(windowTitle_Trace);
 		ImGui::SetWindowPos(windowTitle_Trace, ImVec2(0, 870), ImGuiCond_Once);

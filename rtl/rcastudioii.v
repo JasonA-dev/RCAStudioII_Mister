@@ -54,7 +54,7 @@ cdp1861 cdp1861 (
     .ram_rd(ram_rd),     
     .ram_wr(ram_wr),     
     .ram_a(ram_a),      
-    .ram_q(ram_a),      
+    .ram_q(ram_q),      
     .ram_d(ram_d),     
 
     .Clear(),
@@ -66,6 +66,7 @@ cdp1861 cdp1861 (
     .CompSync(),
     .Locked()
 );
+
 
 wire          ram_rd; // RAM read enable
 wire          ram_wr; // RAM write enable
@@ -113,5 +114,9 @@ dma dma(
   .write(dma_write)
 );
 */
+
+always @(posedge clk) begin
+  
+end
 
 endmodule
