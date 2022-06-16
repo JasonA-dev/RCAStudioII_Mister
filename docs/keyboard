@@ -1,0 +1,6 @@
+Keyboard
+The RCA Studio II uses the 4 to 16 line decoder CD4515 to decode the 20 keys. 
+The lower 4 bits of OUT 2 are used as input selecting one of the 16 outputs of the CD4515. 10 of the outputs are connected to both keypads (keys 0 to 9). 
+The keys on the left keypad are connected to the EF3 flag and on the right keypad to the EF4 flag. 
+The Studio II software checks the keys by stepping OUT 2 from 0 to 9. 
+After every OUT, EF3 and EF4 are checked and if equal to 0 the key representing the last OUT 2 and EF was pressed.

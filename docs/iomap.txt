@@ -1,0 +1,10 @@
+I/O Map
+The following table lists the main I/O definitions of the RCA Studio II.
+
+Q	Sound on/off: fixed tone
+EF1	CDP 1861 display: display status
+EF3	Key pressed on selected port (key pad 1)
+EF4	Key pressed on selected port (key pad 2)
+OUT 1	CDP 1861 display: display off
+OUT 2	Select key / port
+INP 1	CDP 1861 display: display on

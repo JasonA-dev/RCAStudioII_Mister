@@ -1,0 +1,8 @@
+Video
+The RCA Studio II uses the CDP 1861 for video output. 
+The Studio II controls the CDP 1861 via OUT 1 to switch the display off, INP 1 to switch the display on and EF1 to indicate the display status.
+
+The Studio II firmware and games use the most common CDP 1861 resolution of 64 x 32 with interrupt routine entry point at @001C and display memory at @0900-@09FF.
+
+The display status is an active low output signal occurring for a period of four horizontal cycles prior to the beginning and end of the 128 line display window. 
+The signal is used by the firmware interrupt routine to indicate the last 'row' of the display area.
