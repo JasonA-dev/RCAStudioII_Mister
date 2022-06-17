@@ -1,6 +1,6 @@
 set_global_assignment -name VERILOG_FILE rtl/rcastudioii.v
 set_global_assignment -name VERILOG_FILE rtl/rom.v
-set_global_assignment -name VERILOG_FILE rtl/bram.v
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/dpram.sv
 set_global_assignment -name VERILOG_FILE rtl/dma.v
 set_global_assignment -name VERILOG_FILE rtl/cdp1802.v
 set_global_assignment -name VERILOG_FILE rtl/cdp1861.v

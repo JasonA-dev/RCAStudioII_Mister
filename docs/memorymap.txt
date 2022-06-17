@@ -1,6 +1,7 @@
 0000 - 07FF	Build in system ROM, including build in games
 0400 - 07FF	ST2 Cartridge ROMs (overwrites part of system ROM)
-0800 - 09FF	RAM, note that RAM is mirrored everywhere where A9 = 0 and where there is no ROM or cartridge ROM connected (i.e. @0C00, @1000, @1400, @1800 etc.)
+0800 - 09FF	RAM, note that RAM is mirrored everywhere where A9 = 0 and where there is no ROM or cartridge ROM connected 
+            (i.e. @0C00, @1000, @1400, @1800 etc.)
 0900 - 09FF	Used as Video RAM by software
 0A00 - 0FFF	Reserved: for ST2 cartridge ROMs (to my knowledge never used) and RAM mapping as described above.
 

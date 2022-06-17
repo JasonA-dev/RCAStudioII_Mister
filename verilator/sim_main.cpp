@@ -89,7 +89,7 @@ double sc_time_stamp() {	// Called by $time in Verilog.
 
 int clk_sys_freq = 48000000;
 SimClock clk_48(1); // 48mhz
-SimClock clk_24(3); // 24mhz
+//SimClock clk_24(3); // 24mhz
 
 // VCD trace logging
 // -----------------
@@ -126,9 +126,9 @@ SimAudio audio(clk_sys_freq, true);
 // Reset simulation variables and clocks
 void resetSim() {
 	main_time = 0;
-	top->reset = 1;
+	//top->reset = 1;
 	clk_48.Reset();
-	clk_24.Reset();
+	//clk_24.Reset();
 }
 
 int verilate() {
@@ -136,17 +136,17 @@ int verilate() {
 	if (!Verilated::gotFinish()) {
 
 		// Assert reset during startup
-		if (main_time < initialReset) { top->reset = 1; }
+		//if (main_time < initialReset) { top->reset = 1; }
 		// Deassert reset after startup
-		if (main_time == initialReset) { top->reset = 0; }
+		//if (main_time == initialReset) { top->reset = 0; }
 
 		// Clock dividers
 		clk_48.Tick();
-		clk_24.Tick();
+		//clk_24.Tick();
 
 		// Set clocks in core
 		top->clk_48 = clk_48.clk;
-		top->clk_24 = clk_24.clk;
+		//top->clk_24 = clk_24.clk;
 
 		// Simulate both edges of fastest clock
 		if (clk_48.clk != clk_48.old) {
@@ -174,12 +174,12 @@ int verilate() {
 #endif
 
 		// Output pixels on rising edge of pixel clock
-		if (clk_24.IsRising() && top->top__DOT__ce_pix) {
+		if (clk_48.IsRising() && top->top__DOT__ce_pix) {
 			uint32_t colour = 0xFF000000 | top->VGA_B << 16 | top->VGA_G << 8 | top->VGA_R;
 			video.Clock(top->VGA_HB, top->VGA_VB, top->VGA_HS, top->VGA_VS, colour);
 		}
 
-		if (clk_24.IsRising()) {
+		if (clk_48.IsRising()) {
 			main_time++;
 		}
 		return 1;
@@ -319,82 +319,86 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Begin("ROM");
 		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__Rom_StudioII__DOT__d, 2048, 0);
 		ImGui::End();
-		ImGui::Begin("RAM");
-		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__ram__DOT__memory, 4096, 0);
+		//ImGui::Begin("RAM");
+		//mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__ram__DOT__memory, 4096, 0);
+		//ImGui::End();
+		ImGui::Begin("DPRAM");
+		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__dpram__DOT__mem, 65536, 0);
 		ImGui::End();
 
 		// Debug 1802 cpu
 		ImGui::Begin("CDP 1802 Registers");
 		ImGui::Text("P:       0x%04X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__P);	
-		ImGui::Text("X:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__X);
-		ImGui::Text("R:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__R);	
-		ImGui::Text("Ra:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Ra);			
-		ImGui::Text("Rrd:     0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Rrd);	
-		ImGui::Text("Rwd:     0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Rwd);	
-		ImGui::Text("D:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__D);
-		ImGui::Text("DF:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__DF);	
-		ImGui::Text("B:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__B);	
-		ImGui::Text("ram_q:   0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_q);	
-		ImGui::Text("I:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__I);	
-		ImGui::Text("N:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__N);	
+		ImGui::Text("X:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__X);
+		ImGui::Text("R:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__R);	
+		ImGui::Text("Ra:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Ra);			
+		ImGui::Text("Rrd:     0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Rrd);	
+		ImGui::Text("Rwd:     0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Rwd);	
+		ImGui::Text("D:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__D);
+		ImGui::Text("DF:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__DF);	
+		ImGui::Text("B:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__B);	
+		ImGui::Text("ram_q:   0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_q);	
+		ImGui::Text("I:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__I);	
+		ImGui::Text("N:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__N);	
 		ImGui::Spacing();	
-		ImGui::Text("io_din:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_din);	
-		ImGui::Text("io_dout: 0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_dout);
-		ImGui::Text("io_inp:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_inp);	
-		ImGui::Text("io_out:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_out);		
+		ImGui::Text("io_din:  0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_din);	
+		ImGui::Text("io_dout: 0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_dout);
+		ImGui::Text("io_inp:  0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_inp);	
+		ImGui::Text("io_out:  0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_out);		
 		ImGui::Spacing();		
 		ImGui::End();
 
 		ImGui::Begin("CDP 1802");
-		ImGui::Text("Q:            0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Q);	
-		ImGui::Text("EF:           0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__EF);
+		ImGui::Text("Q:            0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Q);	
+		ImGui::Text("EF:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__EF);
 		ImGui::Spacing();	
-		ImGui::Text("io_din:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_din);	
-		ImGui::Text("io_dout:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_dout);
-		ImGui::Text("io_n:         0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_n);	
-		ImGui::Text("io_inp:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_inp);		
+		ImGui::Text("io_din:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_din);	
+		ImGui::Text("io_dout:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_dout);
+		ImGui::Text("io_n:         0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_n);	
+		ImGui::Text("io_inp:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_inp);		
 		ImGui::Spacing();	
-		ImGui::Text("unsupported:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__unsupported);	
+		ImGui::Text("unsupported:  0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__unsupported);	
 		ImGui::Spacing();		
-		ImGui::Text("ram_rd:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_rd);
-		ImGui::Text("ram_wr:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_wr);	
-		ImGui::Text("ram_a:        0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_a);		
-		ImGui::Text("ram_d:        0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_d);		
+		ImGui::Text("ram_rd:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_rd);
+		ImGui::Text("ram_wr:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_wr);	
+		ImGui::Text("ram_a:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_a);	
+		ImGui::Text("ram_q:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_q);			
+		ImGui::Text("ram_d:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_d);			
 		ImGui::Spacing();		
 		ImGui::End();
 
 		// Debug 1861
 		ImGui::Begin("CDP 1861");
-		ImGui::Text("Disp_On:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Disp_On);	
-		ImGui::Text("Disp_Off:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Disp_Off);
-		ImGui::Text("TPA:           0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__TPA);
-		ImGui::Text("TPB:           0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__TPB);		
+		ImGui::Text("Disp_On:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Disp_On);	
+		ImGui::Text("Disp_Off:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Disp_Off);
+		ImGui::Text("TPA:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__TPA);
+		ImGui::Text("TPB:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__TPB);		
 		ImGui::Text("SC:            0x%08X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__SC);	
 		ImGui::Text("DataIn:        0x%08X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__DataIn);							
 		ImGui::Spacing();	
-		ImGui::Text("Clear:         0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Clear);
-		ImGui::Text("INT:           0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__INT);
-		ImGui::Text("DMAO:          0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__DMAO);
-		ImGui::Text("EFx:           0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__EFx);
+		ImGui::Text("Clear:         0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Clear);
+		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__INT);
+		ImGui::Text("DMAO:          0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__DMAO);
+		ImGui::Text("EFx:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__EFx);
 		ImGui::Spacing();
 		ImGui::Text("video:         0x%08X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__video);
-		ImGui::Text("CompSync:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__CompSync);
-		ImGui::Text("Locked:        0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Locked);	
+		ImGui::Text("CompSync:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__CompSync);
+		ImGui::Text("Locked:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Locked);	
 		ImGui::Spacing();														
 		ImGui::End();
 
 		// Debug ioctl
 		ImGui::Begin("ioctl");
-		ImGui::Text("ioctl_download: 0x%01X", top->top__DOT__rcastudio__DOT__ioctl_download);	
-		ImGui::Text("ioctl_wr:       0x%01X", top->top__DOT__rcastudio__DOT__ioctl_wr);
+		ImGui::Text("ioctl_download: 0x%02X", top->top__DOT__rcastudio__DOT__ioctl_download);	
+		ImGui::Text("ioctl_wr:       0x%02X", top->top__DOT__rcastudio__DOT__ioctl_wr);
 		ImGui::Text("ioctl_addr:     0x%04X", top->top__DOT__rcastudio__DOT__ioctl_addr);
-		ImGui::Text("ioctl_dout:     0x%01X", top->top__DOT__rcastudio__DOT__ioctl_dout);		
+		ImGui::Text("ioctl_dout:     0x%02X", top->top__DOT__rcastudio__DOT__ioctl_dout);		
 		ImGui::Spacing();														
 		ImGui::End();
 
 		// Debug sim
 		ImGui::Begin("sim");
-		ImGui::Text("reset: 	0x%01X", top->top__DOT__rcastudio__DOT__reset);	
+		ImGui::Text("reset: 	0x%02X", top->top__DOT__rcastudio__DOT__reset);	
 		ImGui::Spacing();														
 		ImGui::End();
 

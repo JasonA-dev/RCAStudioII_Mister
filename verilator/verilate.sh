@@ -8,6 +8,6 @@ verilator \
 ../rtl/rcastudioii.v \
 ../rtl/cdp1802.v \
 ../rtl/cdp1861.v \
-../rtl/bram.v \
+../rtl/dpram.sv \
 ../rtl/dma.v \
 ../rtl/rom.v

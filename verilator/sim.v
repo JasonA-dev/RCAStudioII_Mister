@@ -4,8 +4,8 @@
 module top(
 
    input clk_48 /*verilator public_flat*/,
-   input clk_24 /*verilator public_flat*/,
-   input reset/*verilator public_flat*/,
+   //input clk_24 /*verilator public_flat*/,
+   //input reset/*verilator public_flat*/,
    input [11:0]  inputs/*verilator public_flat*/,
 
    output [7:0] VGA_R/*verilator public_flat*/,
@@ -69,16 +69,18 @@ module top(
    assign AUDIO_L = {audio,audio};
    assign AUDIO_R = AUDIO_L;
 
-   reg ce_pix;
+   reg ce_pix = 1'b1;
    
+   /*
    always @(posedge clk_48) begin
       reg old_clk;
       
       old_clk <= clk_48;
       ce_pix <= old_clk & ~clk_48;
-
-      //$display("reset %x clk_48 %x clk_24 %x", reset, clk_48, clk_24); 
    end
+   */
+
+wire reset = ioctl_download;
 
 rcastudioii rcastudio
 (

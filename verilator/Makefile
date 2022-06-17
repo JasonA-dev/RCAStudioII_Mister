@@ -57,7 +57,7 @@ V_SRC = \
 	$(RTL)/rcastudioii.v \
 	$(RTL)/cdp1802.v \
 	$(RTL)/cdp1861.v \
-	$(RTL)/bram.v \
+	$(RTL)/dpram.sv \	
 	$(RTL)/dma.v \
 	$(RTL)/rom.v
 

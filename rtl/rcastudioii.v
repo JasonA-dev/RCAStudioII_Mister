@@ -50,12 +50,12 @@ reg  [7:0]  DataIn;
 
 reg  [3:0]  EF;
 
-reg   Clear;
-reg   INT;
-reg   DMAO;
-reg   EFx;
-reg   CompSync;
-wire  Locked;
+wire   Clear;
+wire   INT;
+wire   DMAO;
+wire   EFx;
+wire   CompSync;
+wire   Locked;
 
 cdp1861 cdp1861 (
     .clock(clk),
@@ -66,7 +66,7 @@ cdp1861 cdp1861 (
     .TPA(TPA),
     .TPB(TPB),
     .SC(SC),
-    .DataIn(DataIn),
+    .DataIn(ram_q),
 
     .Clear(Clear),
     .INT(INT),
@@ -78,13 +78,13 @@ cdp1861 cdp1861 (
     .Locked(Locked)
 );
 
-reg Q;
+wire Q;
 reg [7:0] cpu_din;
 reg [7:0] cpu_dout;
 wire cpu_inp;
 wire cpu_out;
 
-reg unsupported;
+wire unsupported;
 
 cdp1802 cdp1802 (
   .clock(clk),
@@ -104,15 +104,16 @@ cdp1802 cdp1802 (
   .ram_rd(ram_rd),     
   .ram_wr(ram_wr),     
   .ram_a(ram_a),      
-  .ram_q(cpu_din),      
+  .ram_q(ram_q),      
   .ram_d(ram_d)      
 );
 
+reg ram_cs;
 
 wire          ram_rd; // RAM read enable
 wire          ram_wr; // RAM write enable
 wire  [15:0]  ram_a;  // RAM address
-reg    [7:0]  ram_q;  // RAM read data
+wire   [7:0]  ram_q;  // RAM read data
 wire   [7:0]  ram_d;  // RAM write data
 
 wire  [7:0]   romDo_StudioII;
@@ -126,7 +127,7 @@ rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
 	.data_out   (romDo_StudioII ),
 	.a          (romA[10:0]     )
 );
-
+/*
 rom #(.AW(11)) Rom_SingleCart
 (
 	.clock      (clk            ),
@@ -134,18 +135,22 @@ rom #(.AW(11)) Rom_SingleCart
 	.data_out   (romDo_SingleCart ),
 	.a          (romA[10:0]     )
 );
+*/
+dpram #(.ADDR(16)) dpram (
 
-bram ram (
-  .clk(clk),
+  .a_clk(clk),
+	.a_ce(ram_rd),
+	.a_wr(ram_wr),
+	.a_din(ram_d),
+	.a_dout(ram_q),
+	.a_addr(ram_a),
 
-  .bram_download(ioctl_download),
-  .bram_wr(ioctl_wr),
-  .bram_init_address(ioctl_addr),
-  .bram_din(ioctl_dout),
-
-  .cs(ram_rd),
-  .addr(ram_a),
-  .dout(ram_q)
+  .b_clk(clk),
+	.b_ce(ioctl_download),
+	.b_wr(ioctl_wr),
+	.b_din(ioctl_dout),
+	.b_dout(),
+	.b_addr(ioctl_addr)
 );
 
 /*
@@ -164,11 +169,5 @@ dma dma(
   .write(dma_write)
 );
 */
-
-always @(posedge clk) begin
-
-  cpu_din <= ram_q;
-
-end
 
 endmodule
