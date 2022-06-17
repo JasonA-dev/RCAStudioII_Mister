@@ -18,24 +18,33 @@
 
 //`timescale 1ns / 1ps
 
-module bram (
-  input clk,
+module bram 
+#
+(
+	parameter DW = 8,
+	parameter AW = 12
+)
+(
+  
+  input            clk,
 
-  input bram_download,
-  input bram_wr,
-  input [15:0] bram_init_address,
-  input [7:0] bram_din,
+  input            bram_download,
+  input            bram_wr,
+  input     [24:0] bram_init_address,
+  input      [7:0] bram_din,
 
-  input cs,
-  input [15:0] addr,
+  input            cs,
+  input     [24:0] addr,
   output reg [7:0] dout
 );
 
-reg [7:0] memory[512:0];
+reg[DW-1:0] memory[(2**AW)-1:0];
 
 always @(posedge clk) begin
-  if (bram_download && bram_wr)
+  if (bram_download && bram_wr) begin
+    //$display("bram_din %x bram_init_address %x", bram_din, bram_init_address);
     memory[bram_init_address] <= bram_din;
+  end
   else if (cs)
     dout <= memory[addr];
 end

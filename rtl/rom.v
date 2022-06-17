@@ -34,7 +34,8 @@ module rom
 //-------------------------------------------------------------------------------------------------
 
 reg[DW-1:0] d[(2**AW)-1:0];
-initial $readmemh(FN, d, 0);
+
+if(FN) initial $readmemh(FN, d, 0);
 
 always @(posedge clock) if(ce) data_out<= d[a];
 

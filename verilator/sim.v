@@ -85,6 +85,13 @@ rcastudioii rcastudio
 	.clk(clk_48),
 	.reset(reset),
 	
+   //ioctl
+	.ioctl_download(ioctl_download),
+	.ioctl_index(ioctl_index),
+	.ioctl_wr(ioctl_wr),
+	.ioctl_addr(ioctl_addr),
+	.ioctl_dout(ioctl_dout),
+
 	.pal(1'b1),
 	.scandouble(forced_scandoubler),
 

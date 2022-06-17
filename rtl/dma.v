@@ -17,26 +17,27 @@
 //============================================================================
 
 module dma (
-  input clk, 
-  input rdy,
-  input [7:0] ctrl,
-  input [15:0] src_addr,
-  input [15:0] dst_addr,
+
+  input             clk, 
+  input             rdy,
+  input       [7:0] ctrl,
+  input      [15:0] src_addr,
+  input      [15:0] dst_addr,
   output reg [15:0] addr,
-  input [7:0] din,
-  output reg [7:0] dout,
-  input [7:0] length,
-  output busy,
-  output sel, // 1: src -> dst, 2: src <- dst
-  output write
+  input       [7:0] din,
+  output reg  [7:0] dout,
+  input       [7:0] length,
+  output            busy,
+  output            sel, // 1: src -> dst, 2: src <- dst
+  output            write
 );
 
 reg [11:0] queue;
 reg [12:0] addr_a, addr_b;
-reg started;
+reg        started;
 
-assign sel = dst_addr[14];
-assign busy = state != DONE;
+assign sel   = dst_addr[14];
+assign busy  = state != DONE;
 assign write = state == WRITE;
 reg [1:0] state;
 

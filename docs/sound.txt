@@ -1,0 +1,9 @@
+
+https://archive.kontek.net/studio2.classicgaming.gamespy.com/techinfo.htm
+Well, there is some sound hardware. It is an oscillator circuit which is gated by the Q line of the 1802. 
+It can be turned on and off by the 1802 instructions SEQ and REQ respectively.
+The sound circuit is based around an NE555, driven in Astable mode, with Ra = 400k, Rb = 480k and C = 1.8pf. This gives a working frequency of 625 Khz. 
+To complicate things, the control line (pin 5) of the 555 is connected to 0v via a 10uf Electrolytic capacitor. 
+The effect of this is to decay the frequency to about half its standard value in about 0.4 seconds. This gives the peculiar "warpy" effect you hear on power up.
+
+Also, I believe there is a capacitor charging circuit to extend the length of the first "beep" on power up. This is programmed for only 0.08s, but is clearly longer than that.

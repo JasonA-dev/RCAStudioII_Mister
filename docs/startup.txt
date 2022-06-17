@@ -1,0 +1,17 @@
+
+https://archive.kontek.net/studio2.classicgaming.gamespy.com/techinfo.htm
+Initially, TPA = 0 and MRD = 1.
+
+Set the high address on A0-A7
+Set TPA to 1
+Set MRD to 0
+Set TPA to 0
+Set the low address on A0-A7
+Set TPB to 1
+Set TPB to 0
+Read the byte
+Set MRD to 1
+
+
+If no cart, set PC to 0x0000
+If cart, set PC to 0x0400

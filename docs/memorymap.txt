@@ -3,3 +3,14 @@
 0800 - 09FF	RAM, note that RAM is mirrored everywhere where A9 = 0 and where there is no ROM or cartridge ROM connected (i.e. @0C00, @1000, @1400, @1800 etc.)
 0900 - 09FF	Used as Video RAM by software
 0A00 - 0FFF	Reserved: for ST2 cartridge ROMs (to my knowledge never used) and RAM mapping as described above.
+
+https://archive.kontek.net/studio2.classicgaming.gamespy.com/techinfo.htm
+0000-02FF	ROM 	    RCA System ROM : Interpreter
+0300-03FF	ROM	        RCA System ROM : Always present
+0400-07FF	ROM	        Games Programs, built in (no cartridge)
+0400-07FF	Cartridge	Cartridge Games (when cartridge plugged in)
+0800-08FF	RAM	        System Memory, Program Memory etc.
+0900-09FF	RAM	        Display Memory
+0A00-0BFF	Cartridge	(MultiCart) Available for Cartridge games if required, probably isn't.
+0C00-0DFF	RAM/ROM	    Duplicate of 800-9FF - the RAM is double mapped in the default set up. This RAM can be disabled and ROM can be put here instead, so assume this is ROM for emulation purposes.
+0E00-0FFF	Cartridge	(MultiCart) Available for Cartridge games if required, probably isn't.

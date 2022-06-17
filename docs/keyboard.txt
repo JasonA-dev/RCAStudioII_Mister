@@ -1,0 +1,14 @@
+Keyboard
+The RCA Studio II uses the 4 to 16 line decoder CD4515 to decode the 20 keys. 
+The lower 4 bits of OUT 2 are used as input selecting one of the 16 outputs of the CD4515. 10 of the outputs are connected to both keypads (keys 0 to 9). 
+The keys on the left keypad are connected to the EF3 flag and on the right keypad to the EF4 flag. 
+The Studio II software checks the keys by stepping OUT 2 from 0 to 9. 
+After every OUT, EF3 and EF4 are checked and if equal to 0 the key representing the last OUT 2 and EF was pressed.
+
+https://archive.kontek.net/studio2.classicgaming.gamespy.com/techinfo.htm
+To scan a given key, output its "key number" (0-9) to 1802 I/O Port 2. 
+Only the four lower bits are significant. The status of the selected key can be obtained either via EF3 (for Player 1, the left handed player), 
+and EF4 (for Player 2, the right handed player). Latching and Strobing is done via a 4515 4-16 latch decoder and the array of diodes. 
+Whoever designed this had shares in a diode factory, obviously.
+The strobing singla is obtained by inverting TPB (4001 gates 4,5,6) and exclusive Noring it with the output of Q1 (see "Decoding"). 
+The net effect of this is that it it strobes when TPB = 1, and the "stored" value of N1 is 0.

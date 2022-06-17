@@ -30,7 +30,7 @@ using namespace std;
 // Simulation control
 // ------------------
 int initialReset = 48;
-bool run_enable = 1;
+bool run_enable = 0;
 int batchSize = 150000;
 bool single_step = 0;
 bool multi_step = 0;
@@ -252,7 +252,7 @@ int main(int argc, char** argv, char** env) {
 	// Setup video output
 	if (video.Initialise(windowTitle) == 1) { return 1; }
 
-	//bus.QueueDownload("./test.bin", 0, true);
+	bus.QueueDownload("./studio2.rom", 0, true);
 
 
 #ifdef WIN32
@@ -304,7 +304,11 @@ int main(int argc, char** argv, char** env) {
 		if (ImGui::Button("Multi Step")) { run_enable = 0; multi_step = 1; }
 		//ImGui::SameLine();
 		ImGui::SliderInt("Multi step amount", &multi_step_amount, 8, 1024);
-
+		if (ImGui::Button("Load ST2"))
+    	ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".st2", ".");
+		ImGui::SameLine();
+		if (ImGui::Button("Load BIN"))
+    	ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".bin", ".");
 		ImGui::End();
 
 		// Debug log window
@@ -316,28 +320,76 @@ int main(int argc, char** argv, char** env) {
 		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__Rom_StudioII__DOT__d, 2048, 0);
 		ImGui::End();
 		ImGui::Begin("RAM");
-		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__ram__DOT__memory, 512, 0);
+		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__ram__DOT__memory, 4096, 0);
 		ImGui::End();
 
 		// Debug 1802 cpu
 		ImGui::Begin("CDP 1802 Registers");
-		ImGui::Text("P:       0x%04X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__P);	
-		ImGui::Text("X:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__X);
-		ImGui::Text("R:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__R);	
-		ImGui::Text("Rrd:     0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__Rrd);	
-		ImGui::Text("Rwd:     0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__Rwd);	
-		ImGui::Text("D:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__D);
-		ImGui::Text("DF:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__DF);	
-		ImGui::Text("B:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__B);	
-		ImGui::Text("ram_q:   0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__ram_q);	
-		ImGui::Text("I:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__I);	
-		ImGui::Text("N:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__N);	
+		ImGui::Text("P:       0x%04X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__P);	
+		ImGui::Text("X:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__X);
+		ImGui::Text("R:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__R);	
+		ImGui::Text("Rrd:     0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Rrd);	
+		ImGui::Text("Rwd:     0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Rwd);	
+		ImGui::Text("D:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__D);
+		ImGui::Text("DF:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__DF);	
+		ImGui::Text("B:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__B);	
+		ImGui::Text("ram_q:   0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_q);	
+		ImGui::Text("I:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__I);	
+		ImGui::Text("N:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__N);	
 		ImGui::Spacing();	
-		ImGui::Text("io_din:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__io_din);	
-		ImGui::Text("io_dout: 0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__io_dout);
-		ImGui::Text("io_inp:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__io_inp);	
-		ImGui::Text("io_out:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__cdp1802__DOT__io_out);		
+		ImGui::Text("io_din:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_din);	
+		ImGui::Text("io_dout: 0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_dout);
+		ImGui::Text("io_inp:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_inp);	
+		ImGui::Text("io_out:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_out);		
 		ImGui::Spacing();		
+		ImGui::End();
+
+		ImGui::Begin("CDP 1802");
+		ImGui::Text("Q:            0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Q);	
+		ImGui::Text("EF:           0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__EF);
+		ImGui::Spacing();	
+		ImGui::Text("io_din:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_din);	
+		ImGui::Text("io_dout:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_dout);
+		ImGui::Text("io_n:         0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_n);	
+		ImGui::Text("io_inp:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_inp);		
+		ImGui::Spacing();	
+		ImGui::Text("unsupported:  0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__unsupported);	
+		ImGui::Spacing();		
+		ImGui::Text("ram_rd:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_rd);
+		ImGui::Text("ram_wr:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_wr);	
+		ImGui::Text("ram_a:        0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_a);		
+		ImGui::Text("ram_d:        0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_d);		
+		ImGui::Spacing();		
+		ImGui::End();
+
+		// Debug 1861
+		ImGui::Begin("CDP 1861");
+		ImGui::Text("Disp_On:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Disp_On);	
+		ImGui::Text("Disp_Off:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Disp_Off);
+		ImGui::Text("TPA:           0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__TPA);
+		ImGui::Text("TPB:           0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__TPB);		
+		ImGui::Text("SC:            0x%08X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__SC);	
+		ImGui::Text("DataIn:        0x%08X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__DataIn);							
+		ImGui::Spacing();	
+		ImGui::Text("Clear:         0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Clear);
+		ImGui::Text("INT:           0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__INT);
+		ImGui::Text("DMAO:          0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__DMAO);
+		ImGui::Text("EFx:           0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__EFx);
+		ImGui::Spacing();
+		ImGui::Text("video:         0x%08X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__video);
+		ImGui::Text("CompSync:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__CompSync);
+		ImGui::Text("Locked:        0x%01X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Locked);	
+		ImGui::Spacing();														
+		ImGui::End();
+
+		// Debug ioctl
+		ImGui::Begin("ioctl");
+		ImGui::Text("ioctl_download: 0x%01X", top->top__DOT__rcastudio__DOT__ioctl_download);	
+		ImGui::Text("ioctl_wr:       0x%01X", top->top__DOT__rcastudio__DOT__ioctl_wr);
+		ImGui::Text("ioctl_addr:     0x%04X", top->top__DOT__rcastudio__DOT__ioctl_addr);
+		ImGui::Text("ioctl_dout:     0x%01X", top->top__DOT__rcastudio__DOT__ioctl_dout);		
+
+		ImGui::Spacing();														
 		ImGui::End();
 
 		// Trace/VCD window
@@ -393,6 +445,21 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Image(video.texture_id, ImVec2(video.output_width * VGA_SCALE_X, video.output_height * VGA_SCALE_Y));
 		ImGui::End();
 
+  		if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
+  		{
+    		// action if OK
+    		if (ImGuiFileDialog::Instance()->IsOk())
+    		{
+      			std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+      			std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+      			// action
+				fprintf(stderr,"filePathName: %s\n",filePathName.c_str());
+				fprintf(stderr,"filePath: %s\n",filePath.c_str());
+     			bus.QueueDownload(filePathName, 1, 1);
+    		}
+    		// close
+    		ImGuiFileDialog::Instance()->Close();
+  		}
 
 #ifndef DISABLE_AUDIO
 

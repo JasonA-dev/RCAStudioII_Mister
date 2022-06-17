@@ -6,3 +6,14 @@ The Studio II firmware and games use the most common CDP 1861 resolution of 64 x
 
 The display status is an active low output signal occurring for a period of four horizontal cycles prior to the beginning and end of the 128 line display window. 
 The signal is used by the firmware interrupt routine to indicate the last 'row' of the display area.
+
+https://archive.kontek.net/studio2.classicgaming.gamespy.com/techinfo.htm
+The Graphics hardware is a combination of hardware and software. The CDP1861CE generates the video signals, 
+the pixel data, and the DMA pulses which signal a sequence of DMA OUT actions to the 1802. 
+Effectively the 1861 clocks the DMA OUT, reads the data it gets and converts that into pixels. 
+The 1802 is interrupted every frame (60 times a second, NTSC standard)  to set up the 1802's registers for the code.
+The hardware is described in greater detail here.
+
+In theory, the RCA can support a resolution of 64 horizontal and up to 128 lines vertically. 
+In reality, however, the display is a memory mapped type between 900 and 9FF, 64 pixels by 32, 8 bytes per line. 
+This is what the code in the ROM supports. Theoretically, you could replace the Interrupt driver with a different one, but I doubt any cartridge did this.

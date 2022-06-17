@@ -18,36 +18,30 @@
 
 module cdp1861 (
 
-    input clock,
-    input reset,
+    input               clock,
+    input               reset,
 
-    input Disp_On,
-    input Disp_Off,
-    input TPA,
-    input TPB,
-    input [1:0] SC,
-    input [7:0] DataIn,
+    input               Disp_On,
+    input               Disp_Off,
+    input               TPA,
+    input               TPB,
+    input       [1:0]   SC,
+    input       [7:0]   DataIn,
 
-    output              ram_rd,     // RAM read enable
-    output              ram_wr,     // RAM write enable
-    output     [15:0]   ram_a,      // RAM address
-    input      [7:0]    ram_q,      // RAM read data
-    output     [7:0]    ram_d,      // RAM write data
+    output              Clear,
+    output reg          INT,
+    output reg          DMAO,
+    output reg          EFx,
 
-    output Clear,
-    output reg INT,
-    output reg DMAO,
-    output reg EFx,
-
-    output reg video,
-    output reg CompSync,
-    output Locked
+    output reg          video,
+    output reg          CompSync,
+    output              Locked
 );
 
 //Line and Machine Cycle counter
-reg lineCounter   = 'd263;
-reg MCycleCounter = 'd28;
-reg syncCounter   = 'd12;
+reg lineCounter;   // max 'd263;
+reg MCycleCounter; // max 'd28;
+reg syncCounter;   // max 'd12;
     
 reg DisplayOn;
 
@@ -55,13 +49,6 @@ reg VSync;
 reg HSync;
 
 reg [7:0] VideoShiftReg;
-
-reg [7:0] cpu_din;
-reg [7:0] cpu_dout;
-wire cpu_inp;
-wire cpu_out;
-
-reg unsupported;
 
 always @(posedge clock) begin
 
@@ -81,14 +68,14 @@ always @(posedge clock) begin
 
   if(MCycleCounter == 'd28) begin
     lineCounter <= lineCounter + 1'd1;
-    MCycleCounter <= 0;
+    MCycleCounter <= 'd0;
   end
 
   if (syncCounter == 'd12)
-    syncCounter <= 0;
+    syncCounter <= 'd0;
 
   if (lineCounter == 'd263)
-    lineCounter <= 0;
+    lineCounter <= 'd0;
 
   //Display On flag for controlling the DMA and Interrupt output
   if(Disp_On) 
@@ -97,12 +84,12 @@ always @(posedge clock) begin
     DisplayOn <= 1'b0;
 
   //Flag Logic
-  if ((lineCounter == 78 || lineCounter == 79) && DisplayOn)
+  if ((lineCounter == 'd78 || lineCounter == 'd79) && DisplayOn)
     INT <= 1'b0;
   else
     INT <= 1'b1;
 
-  if ((lineCounter >= 76 && lineCounter <= 79) || (lineCounter >= 205 && lineCounter <= 207))
+  if ((lineCounter >= 'd76 && lineCounter <= 'd79) || (lineCounter >= 'd205 && lineCounter <= 'd207))
     EFx <= 1'b0;
   else 
     EFx <= 1'b1;
@@ -121,51 +108,27 @@ always @(negedge clock) begin
     VSync <= 1'b0;
 
   //HSync Logic
-  if (MCycleCounter >= 3 | (MCycleCounter == 2 && TPA)) 
+  if (MCycleCounter >= 'd3 | (MCycleCounter == 'd2 && TPA)) 
     HSync <= 1'b1;
   else
     HSync <= 1'b0;
 
   //DMA Logic
-  if(lineCounter >= 'd80 && lineCounter <= 'd207 && ((MCycleCounter == 2 && TPA) || MCycleCounter >= 3 && MCycleCounter <= 19) && DisplayOn)
+  if(lineCounter >= 'd80 && lineCounter <= 'd207 && ((MCycleCounter == 'd2 && TPA) || MCycleCounter >= 'd3 && MCycleCounter <= 'd19) && DisplayOn)
     DMAO <= 1'b0;
   else 
     DMAO <= 1'b1;
 
   //Video shift Register
-  if(SC == 2 && TPB)
+  if(SC == 'd2 && TPB)
     VideoShiftReg <= DataIn;
   else if (~reset) 
-    VideoShiftReg <= 0;
+    VideoShiftReg <= 'd0;
   else 
     VideoShiftReg <= VideoShiftReg << 1;
 
   video <= VideoShiftReg[7];
 
 end
-
-
-cdp1802 cdp1802 (
-  .clock(clock),
-  .resetq(reset),
-
-  .Q(),          // O external pin Q
-  .EF(),         // I 3:0 external flags EF1 to EF4
-
-  .io_din(cpu_din),     
-  .io_dout(cpu_dout),    
-  .io_n(),       // O 2:0 IO control lines: N2,N1,N0
-  .io_inp(cpu_inp),     // O IO input signal
-  .io_out(cpu_out),     // O IO output signal
-
-  .unsupported(unsupported),
-
-  .ram_rd(ram_rd),     
-  .ram_wr(ram_wr),     
-  .ram_a(ram_a),      
-  .ram_q(ram_q),      
-  .ram_d(ram_d)      
-);
-
 
 endmodule

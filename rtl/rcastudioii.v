@@ -24,8 +24,8 @@ module rcastudioii
   input wire        ioctl_download,
   input wire  [7:0] ioctl_index,
   input wire        ioctl_wr,
-  input wire [24:0] ioctl_addr,
-	input wire  [7:0] ioctl_dout,
+  input  [24:0] ioctl_addr,
+	input   [7:0] ioctl_dout,
 
 	input         pal,
 	input         scandouble,
@@ -40,31 +40,72 @@ module rcastudioii
 	output  [7:0] video
 );
 
+
+wire        Disp_On;
+wire        Disp_Off;
+wire        TPA;
+wire        TPB;
+reg  [1:0]  SC;
+reg  [7:0]  DataIn;
+
+reg  [3:0]  EF;
+
+wire  Clear;
+reg   INT;
+reg   DMAO;
+reg   EFx;
+reg   CompSync;
+wire  Locked;
+
 cdp1861 cdp1861 (
     .clock(clk),
     .reset(reset),
     
     .Disp_On(1'b1),
     .Disp_Off(1'b0),
-    .TPA(),
-    .TPB(),
-    .SC(),
-    .DataIn(),
+    .TPA(TPA),
+    .TPB(TPB),
+    .SC(SC),
+    .DataIn(DataIn),
 
-    .ram_rd(ram_rd),     
-    .ram_wr(ram_wr),     
-    .ram_a(ram_a),      
-    .ram_q(ram_q),      
-    .ram_d(ram_d),     
-
-    .Clear(),
-    .INT(),
-    .DMAO(),
-    .EFx(),
+    .Clear(Clear),
+    .INT(INT),
+    .DMAO(DMAO),
+    .EFx(EFx),
 
     .video(video),
-    .CompSync(),
-    .Locked()
+    .CompSync(CompSync),
+    .Locked(Locked)
+);
+
+wire Q;
+reg [7:0] cpu_din;
+reg [7:0] cpu_dout;
+wire cpu_inp;
+wire cpu_out;
+
+reg unsupported;
+
+cdp1802 cdp1802 (
+  .clock(clk),
+  .resetq(reset),
+
+  .Q(Q),                 // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
+  .EF(EF),              // I 3:0 external flags EF1 to EF4
+
+  .io_din(cpu_din),     
+  .io_dout(cpu_dout),    
+  .io_n(),              // O 2:0 IO control lines: N2,N1,N0
+  .io_inp(cpu_inp),     // O IO input signal
+  .io_out(cpu_out),     // O IO output signal
+
+  .unsupported(unsupported),
+
+  .ram_rd(ram_rd),     
+  .ram_wr(ram_wr),     
+  .ram_a(ram_a),      
+  .ram_q(ram_q),      
+  .ram_d(ram_d)      
 );
 
 
@@ -75,6 +116,7 @@ reg    [7:0]  ram_q;  // RAM read data
 wire   [7:0]  ram_d;  // RAM write data
 
 wire  [7:0]   romDo_StudioII;
+wire  [7:0]   romDo_SingleCart;
 wire [11:0]   romA;
 
 rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
@@ -85,13 +127,21 @@ rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
 	.a          (romA[10:0]     )
 );
 
+rom #(.AW(11)) Rom_SingleCart
+(
+	.clock      (clk            ),
+	.ce         (1'b1           ),
+	.data_out   (romDo_SingleCart ),
+	.a          (romA[10:0]     )
+);
+
 bram ram (
   .clk(clk),
 
-  .bram_download(),
-  .bram_wr(),
-  .bram_init_address(),
-  .bram_din(),
+  .bram_download(ioctl_download),
+  .bram_wr(ioctl_wr),
+  .bram_init_address(ioctl_addr),
+  .bram_din(ioctl_dout),
 
   .cs(),
   .addr(),
@@ -116,7 +166,7 @@ dma dma(
 */
 
 always @(posedge clk) begin
-  
+  cpu_din <= ram_q;
 end
 
 endmodule

@@ -204,7 +204,7 @@ assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
 localparam CONF_STR = {
 	"RCASTudioII;;",
 	"-;",	
-	"F,binst2,Load Cartridge;",
+	"F01,binst2,Load Cartridge;",
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O[2],TV Mode,NTSC,PAL;",
