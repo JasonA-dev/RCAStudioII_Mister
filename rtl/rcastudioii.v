@@ -43,14 +43,14 @@ module rcastudioii
 
 wire        Disp_On;
 wire        Disp_Off;
-wire        TPA;
-wire        TPB;
+reg         TPA;
+reg         TPB;
 reg  [1:0]  SC;
 reg  [7:0]  DataIn;
 
 reg  [3:0]  EF;
 
-wire  Clear;
+reg   Clear;
 reg   INT;
 reg   DMAO;
 reg   EFx;
@@ -78,7 +78,7 @@ cdp1861 cdp1861 (
     .Locked(Locked)
 );
 
-wire Q;
+reg Q;
 reg [7:0] cpu_din;
 reg [7:0] cpu_dout;
 wire cpu_inp;
@@ -166,7 +166,29 @@ dma dma(
 */
 
 always @(posedge clk) begin
+  if(reset) begin
+    // 1802
+    Q <= 1'b0;
+
+    // 1861
+    TPA <= 1'b0;
+    TPB <= 1'b0;
+    SC <= 2'b00;
+    DataIn <= 2'b00;
+
+    // 1861
+    Clear <= 1'b1;
+    INT <= 1'b1;
+    DMAO <= 1'b0;
+    EFx <= 1'b0;
+  end
+  else begin
+    Clear <= 1'b0;
+    INT <= 1'b0;    
+  end
+
   cpu_din <= ram_q;
+
 end
 
 endmodule

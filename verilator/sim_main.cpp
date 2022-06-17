@@ -89,7 +89,7 @@ double sc_time_stamp() {	// Called by $time in Verilog.
 
 int clk_sys_freq = 48000000;
 SimClock clk_48(1); // 48mhz
-//SimClock clk_12(4); // 12mhz
+SimClock clk_24(3); // 24mhz
 
 // VCD trace logging
 // -----------------
@@ -128,7 +128,7 @@ void resetSim() {
 	main_time = 0;
 	top->reset = 1;
 	clk_48.Reset();
-	//clk_12.Reset();
+	clk_24.Reset();
 }
 
 int verilate() {
@@ -142,11 +142,11 @@ int verilate() {
 
 		// Clock dividers
 		clk_48.Tick();
-		//clk_12.Tick();
+		clk_24.Tick();
 
 		// Set clocks in core
 		top->clk_48 = clk_48.clk;
-		//top->clk_12 = clk_12.clk;
+		top->clk_24 = clk_24.clk;
 
 		// Simulate both edges of fastest clock
 		if (clk_48.clk != clk_48.old) {
@@ -174,12 +174,12 @@ int verilate() {
 #endif
 
 		// Output pixels on rising edge of pixel clock
-		if (clk_48.IsRising() && top->top__DOT__ce_pix) {
+		if (clk_24.IsRising() && top->top__DOT__ce_pix) {
 			uint32_t colour = 0xFF000000 | top->VGA_B << 16 | top->VGA_G << 8 | top->VGA_R;
 			video.Clock(top->VGA_HB, top->VGA_VB, top->VGA_HS, top->VGA_VS, colour);
 		}
 
-		if (clk_48.IsRising()) {
+		if (clk_24.IsRising()) {
 			main_time++;
 		}
 		return 1;
@@ -328,6 +328,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("P:       0x%04X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__P);	
 		ImGui::Text("X:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__X);
 		ImGui::Text("R:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__R);	
+		ImGui::Text("Ra:      0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Ra);			
 		ImGui::Text("Rrd:     0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Rrd);	
 		ImGui::Text("Rwd:     0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Rwd);	
 		ImGui::Text("D:       0x%01X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__D);
@@ -388,7 +389,12 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("ioctl_wr:       0x%01X", top->top__DOT__rcastudio__DOT__ioctl_wr);
 		ImGui::Text("ioctl_addr:     0x%04X", top->top__DOT__rcastudio__DOT__ioctl_addr);
 		ImGui::Text("ioctl_dout:     0x%01X", top->top__DOT__rcastudio__DOT__ioctl_dout);		
+		ImGui::Spacing();														
+		ImGui::End();
 
+		// Debug sim
+		ImGui::Begin("sim");
+		ImGui::Text("reset: 	0x%01X", top->top__DOT__rcastudio__DOT__reset);	
 		ImGui::Spacing();														
 		ImGui::End();
 
