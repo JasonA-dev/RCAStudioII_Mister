@@ -88,13 +88,13 @@ reg unsupported;
 
 cdp1802 cdp1802 (
   .clock(clk),
-  .resetq(reset),
+  .resetq(~reset),
 
   .Q(Q),                 // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
-  .EF(EF),              // I 3:0 external flags EF1 to EF4
+  .EF(4'b0000),              // I 3:0 external flags EF1 to EF4
 
-  .io_din(cpu_din),     
-  .io_dout(cpu_dout),    
+  .io_din(),     
+  .io_dout(),    
   .io_n(),              // O 2:0 IO control lines: N2,N1,N0
   .io_inp(cpu_inp),     // O IO input signal
   .io_out(cpu_out),     // O IO output signal
@@ -104,7 +104,7 @@ cdp1802 cdp1802 (
   .ram_rd(ram_rd),     
   .ram_wr(ram_wr),     
   .ram_a(ram_a),      
-  .ram_q(ram_q),      
+  .ram_q(cpu_din),      
   .ram_d(ram_d)      
 );
 
@@ -143,9 +143,9 @@ bram ram (
   .bram_init_address(ioctl_addr),
   .bram_din(ioctl_dout),
 
-  .cs(),
-  .addr(),
-  .dout()
+  .cs(ram_rd),
+  .addr(ram_a),
+  .dout(ram_q)
 );
 
 /*
@@ -166,26 +166,6 @@ dma dma(
 */
 
 always @(posedge clk) begin
-  if(reset) begin
-    // 1802
-    Q <= 1'b0;
-
-    // 1861
-    TPA <= 1'b0;
-    TPB <= 1'b0;
-    SC <= 2'b00;
-    DataIn <= 2'b00;
-
-    // 1861
-    Clear <= 1'b1;
-    INT <= 1'b1;
-    DMAO <= 1'b0;
-    EFx <= 1'b0;
-  end
-  else begin
-    Clear <= 1'b0;
-    INT <= 1'b0;    
-  end
 
   cpu_din <= ram_q;
 
