@@ -5,9 +5,8 @@ verilator \
 --converge-limit 6000 \
 -Wno-fatal \
 --top-module top sim.v \
-../rtl/rcastudioii.v \
+../rtl/rcastudioii.sv \
 ../rtl/cdp1802.v \
 ../rtl/cdp1861.v \
 ../rtl/dpram.sv \
-../rtl/dma.v \
 ../rtl/rom.v

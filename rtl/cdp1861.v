@@ -35,34 +35,42 @@ module cdp1861 (
 
     output reg          video,
     output reg          CompSync,
-    output              Locked
+    output              Locked,
+
+    output reg  VSync,
+    output reg  HSync,
+    output wire  VBlank,
+    output wire  HBlank,
+
+    output reg  video_de     
 );
 
 //Line and Machine Cycle counter
-reg lineCounter;   // max 'd263;
-reg MCycleCounter; // max 'd28;
-reg syncCounter;   // max 'd12;
+reg [7:0] lineCounter;   // max 'd263;
+reg [7:0] MCycleCounter; // max 'd28;
+reg [7:0] syncCounter;   // max 'd12;
     
 reg DisplayOn;
 
-reg VSync;
-reg HSync;
+assign VBlank = lineCounter > 79;
+assign HBlank = MCycleCounter > 28;
 
 reg [7:0] VideoShiftReg;
 
 always @(posedge clock) begin
 
-  if(~reset) begin
+/*
+  if(reset) begin
     lineCounter   <= 0;
     syncCounter   <= 0;
     MCycleCounter <= 0;
   end
-
-  if (syncCounter != 0 || (MCycleCounter == 'd26 && lineCounter == 0 && TPA && (SC != 0))) begin
+*/
+  if (syncCounter == 'd0 || (MCycleCounter == 'd26 && lineCounter == 'd0 && TPA && (SC != 2'b00))) begin
     syncCounter <= syncCounter + 1'd1;
   end
 
-  if((TPB || TPA) && syncCounter == 0) begin
+  if((TPB || TPA) && syncCounter <= 'd12) begin    
     MCycleCounter <= MCycleCounter + 1'd1;
   end
 
@@ -74,8 +82,9 @@ always @(posedge clock) begin
   if (syncCounter == 'd12)
     syncCounter <= 'd0;
 
-  if (lineCounter == 'd263)
+  if (lineCounter == 'd263) begin
     lineCounter <= 'd0;
+  end
 
   //Display On flag for controlling the DMA and Interrupt output
   if(Disp_On) 
@@ -84,15 +93,19 @@ always @(posedge clock) begin
     DisplayOn <= 1'b0;
 
   //Flag Logic
-  if ((lineCounter == 'd78 || lineCounter == 'd79) && DisplayOn)
+  if ((lineCounter == 'd78 || lineCounter == 'd79) && DisplayOn) 
     INT <= 1'b0;
-  else
+  else 
     INT <= 1'b1;
 
-  if ((lineCounter >= 'd76 && lineCounter <= 'd79) || (lineCounter >= 'd205 && lineCounter <= 'd207))
+  if ((lineCounter >= 'd76 && lineCounter <= 'd79) || (lineCounter >= 'd205 && lineCounter <= 'd207)) begin
     EFx <= 1'b0;
-  else 
+    video_de  <= 1'b0;   
+  end
+  else begin
     EFx <= 1'b1;
+    video_de  <= 1'b1;      
+  end
 
 end
 
@@ -120,7 +133,7 @@ always @(negedge clock) begin
     DMAO <= 1'b1;
 
   //Video shift Register
-  if(SC == 'd2 && TPB)
+  if(SC == 2'b01 && TPB)
     VideoShiftReg <= DataIn;
   else if (~reset) 
     VideoShiftReg <= 'd0;

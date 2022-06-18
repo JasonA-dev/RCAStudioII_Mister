@@ -259,7 +259,8 @@ pll pll
 	.outclk_0(clk_sys)
 );
 
-wire reset = RESET | status[0] | buttons[1];
+wire reset = ioctl_download;
+//wire reset = RESET | status[0] | buttons[1];
 
 //////////////////////////////////////////////////////////////////
 
@@ -269,7 +270,7 @@ wire HBlank;
 wire HSync;
 wire VBlank;
 wire VSync;
-wire ce_pix;
+wire ce_pix = 1'b1;
 wire [7:0] video;
 
 rcastudioii rcastudio
@@ -287,7 +288,8 @@ rcastudioii rcastudio
 	.pal(status[2]),
 	.scandouble(forced_scandoubler),
 
-	.ce_pix(ce_pix),
+	.ps2_key(ps2_key),
+//	.ce_pix(ce_pix),
 
 	.HBlank(HBlank),
 	.HSync(HSync),
@@ -303,9 +305,12 @@ assign CE_PIXEL = ce_pix;
 assign VGA_DE = ~(HBlank | VBlank);
 assign VGA_HS = HSync;
 assign VGA_VS = VSync;
-assign VGA_G  = (!col || col == 2) ? video : 8'd0;
-assign VGA_R  = (!col || col == 1) ? video : 8'd0;
-assign VGA_B  = (!col || col == 3) ? video : 8'd0;
+//assign VGA_G  = (!col || col == 2) ? video : 8'd0;
+//assign VGA_R  = (!col || col == 1) ? video : 8'd0;
+//assign VGA_B  = (!col || col == 3) ? video : 8'd0;
+assign VGA_R = {8{video}};
+assign VGA_G = {8{video}};
+assign VGA_B = {8{video}};
 
 reg  [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 

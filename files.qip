@@ -1,4 +1,4 @@
-set_global_assignment -name VERILOG_FILE rtl/rcastudioii.v
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/rcastudioii.sv
 set_global_assignment -name VERILOG_FILE rtl/rom.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/dpram.sv
 set_global_assignment -name VERILOG_FILE rtl/dma.v

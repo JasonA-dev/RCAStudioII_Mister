@@ -10,17 +10,25 @@ OUT 2	Select key / port
 INP 1	CDP 1861 display: display on
 
 https://archive.kontek.net/studio2.classicgaming.gamespy.com/techinfo.htm
+
 Port 1. (Input)
 Reading this turns on the video circuitry, enabling the 60Hz interrupt which tells the 1802 that it is time for a new video frame. 
 The value read is undefined, but the simplest way to turn on video is via CALL $0066 ; this is done by the system BIOS anyway.
+
 Port 2 (Output)
-The lower four bits of Port 2 select the keypad number to be read. Both keypads can be read this way. The value can be tested via EF3 and EF4 (see below).
+The lower four bits of Port 2 select the keypad number to be read. Both keypads can be read this way. 
+The value can be tested via EF3 and EF4 (see below).
+
 EF1 (Input pin)
-Goes to logic 1 at the end of the generating code, briefly. This is used to loop the interrupt driven video display continually, and check when it is to be terminated. 
+Goes to logic 1 at the end of the generating code, briefly. This is used to loop the interrupt driven video display continually, 
+and check when it is to be terminated. 
 It pulses as well when the video is not being displayed, exactly how is unknown.
+
 EF3 (Input pin)
 Logic '1' when the selected key on the left hand keypad is pressed
+
 EF4 (Input pin)
 Logic '1' when the selected key on the right hand keypad is pressed
+
 Q (Output pin)
 Turns the sound off and on. When logic '1', the beeper is on.

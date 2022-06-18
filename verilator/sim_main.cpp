@@ -89,7 +89,6 @@ double sc_time_stamp() {	// Called by $time in Verilog.
 
 int clk_sys_freq = 48000000;
 SimClock clk_48(1); // 48mhz
-//SimClock clk_24(3); // 24mhz
 
 // VCD trace logging
 // -----------------
@@ -126,9 +125,7 @@ SimAudio audio(clk_sys_freq, true);
 // Reset simulation variables and clocks
 void resetSim() {
 	main_time = 0;
-	//top->reset = 1;
 	clk_48.Reset();
-	//clk_24.Reset();
 }
 
 int verilate() {
@@ -142,11 +139,9 @@ int verilate() {
 
 		// Clock dividers
 		clk_48.Tick();
-		//clk_24.Tick();
 
 		// Set clocks in core
 		top->clk_48 = clk_48.clk;
-		//top->clk_24 = clk_24.clk;
 
 		// Simulate both edges of fastest clock
 		if (clk_48.clk != clk_48.old) {
@@ -217,6 +212,7 @@ int main(int argc, char** argv, char** env) {
 	bus.ioctl_wr = &top->ioctl_wr;
 	bus.ioctl_dout = &top->ioctl_dout;
 	bus.ioctl_din = &top->ioctl_din;
+    input.ps2_key = &top->ps2_key;
 
 #ifndef DISABLE_AUDIO
 	audio.Initialise();
@@ -323,7 +319,7 @@ int main(int argc, char** argv, char** env) {
 		//mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__ram__DOT__memory, 4096, 0);
 		//ImGui::End();
 		ImGui::Begin("DPRAM");
-		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__dpram__DOT__mem, 65536, 0);
+		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__dpram__DOT__mem, 4096, 0);
 		ImGui::End();
 
 		// Debug 1802 cpu
@@ -384,7 +380,14 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("video:         0x%08X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__video);
 		ImGui::Text("CompSync:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__CompSync);
 		ImGui::Text("Locked:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Locked);	
-		ImGui::Spacing();														
+		ImGui::Spacing();	
+		ImGui::Text("lineCounter:	0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__lineCounter);
+		ImGui::Text("MCycleCounter:	0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__MCycleCounter);
+		ImGui::Text("syncCounter:	0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__syncCounter);
+    	ImGui::Text("DisplayOn:		0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__DisplayOn);
+		ImGui::Text("VSync:			0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__VSync);
+		ImGui::Text("HSync:			0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__HSync);
+		ImGui::Text("VideoShiftReg:	0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__VideoShiftReg);
 		ImGui::End();
 
 		// Debug ioctl
@@ -397,8 +400,35 @@ int main(int argc, char** argv, char** env) {
 		ImGui::End();
 
 		// Debug sim
-		ImGui::Begin("sim");
+		ImGui::Begin("Sim");
 		ImGui::Text("reset: 	0x%02X", top->top__DOT__rcastudio__DOT__reset);	
+		ImGui::Text("ps2_key: 	0x%02X", top->top__DOT__ps2_key);		
+		ImGui::Text("code:   	0x%02X", top->top__DOT__rcastudio__DOT__code);	
+		ImGui::Spacing();														
+		ImGui::End();
+
+		// Debug DMA
+		ImGui::Begin("DMA");
+		ImGui::Text("rom_cs: 	0x%02X", top->top__DOT__rcastudio__DOT__rom_cs);	
+		ImGui::Text("cart_cs: 	0x%02X", top->top__DOT__rcastudio__DOT__cart_cs);
+		ImGui::Text("pram_cs: 	0x%02X", top->top__DOT__rcastudio__DOT__pram_cs);
+		ImGui::Text("vram_cs: 	0x%02X", top->top__DOT__rcastudio__DOT__vram_cs);
+		ImGui::Text("mcart_cs: 	0x%02X", top->top__DOT__rcastudio__DOT__mcart_cs);						
+		ImGui::Spacing();														
+		ImGui::End();
+
+		// Debug Keypad 1
+		ImGui::Begin("Keypad 1");
+		ImGui::Text("btnKP1_1: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_1);	
+		ImGui::Text("btnKP1_2: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_2);
+		ImGui::Text("btnKP1_3: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_3);
+		ImGui::Text("btnKP1_4: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_4);
+		ImGui::Text("btnKP1_5: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_5);		
+		ImGui::Text("btnKP1_6: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_6);	
+		ImGui::Text("btnKP1_7: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_7);
+		ImGui::Text("btnKP1_8: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_8);
+		ImGui::Text("btnKP1_9: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_9);
+		ImGui::Text("btnKP1_0: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_0);							
 		ImGui::Spacing();														
 		ImGui::End();
 

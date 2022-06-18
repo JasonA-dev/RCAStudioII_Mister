@@ -23,8 +23,9 @@ module dpram #(
     parameter DATA = 8,
     parameter ADDR = 14
 ) (
+    input   wire                clk,
+
     // Port A
-    input   wire                a_clk,
     input   wire                a_ce,    
     input   wire                a_wr,
     input   wire    [ADDR-1:0]  a_addr,
@@ -32,7 +33,6 @@ module dpram #(
     output  logic   [DATA-1:0]  a_dout,
 
     // Port B
-    input   wire                b_clk,
     input   wire                b_ce,    
     input   wire                b_wr,
     input   wire    [ADDR-1:0]  b_addr,
@@ -48,34 +48,23 @@ logic [DATA-1:0] mem [(2**ADDR)-1:0];
 end */
 
 // Port A
-always @(posedge a_clk) begin
-
+always @(posedge clk) begin
     if(a_ce) begin
         a_dout <= mem[a_addr];
     end
-
     if(a_wr) begin
-      //  a_dout      <= a_din;
         mem[a_addr] <= a_din;
     end
 end
 
 // Port B
-always @(posedge b_clk) begin
-   // b_dout      <= mem[b_addr];
-
+always @(posedge clk) begin
     if(b_ce) begin
         b_dout <= mem[b_addr];
     end
-
     if(b_wr) begin
-      //  b_dout      <= b_din;
         mem[b_addr] <= b_din;
     end
 end
-
-
-//always @(posedge a_clk) if(a_ce) if(a_wr) mem[a_addr] <= a_din; else a_dout <= mem[a_addr];
-//always @(posedge b_clk) if(b_ce) if(b_wr) mem[b_addr] <= b_din; else b_dout <= mem[b_addr];
 
 endmodule

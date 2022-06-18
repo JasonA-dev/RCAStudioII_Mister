@@ -13,5 +13,7 @@ https://archive.kontek.net/studio2.classicgaming.gamespy.com/techinfo.htm
 0800-08FF	RAM	        System Memory, Program Memory etc.
 0900-09FF	RAM	        Display Memory
 0A00-0BFF	Cartridge	(MultiCart) Available for Cartridge games if required, probably isn't.
-0C00-0DFF	RAM/ROM	    Duplicate of 800-9FF - the RAM is double mapped in the default set up. This RAM can be disabled and ROM can be put here instead, so assume this is ROM for emulation purposes.
+0C00-0DFF	RAM/ROM	    Duplicate of 800-9FF - the RAM is double mapped in the default set up. 
+                        This RAM can be disabled and ROM can be put here instead, 
+                        so assume this is ROM for emulation purposes.
 0E00-0FFF	Cartridge	(MultiCart) Available for Cartridge games if required, probably isn't.
