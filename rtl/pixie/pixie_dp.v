@@ -29,13 +29,19 @@ module pixie_dp
     input   [7:0] data,     
 
     output        dmao,     
-    output        int,     
+    output        INT,     
     output        efx,
 
     // back end, video clock domain
     input         video_clk,
     output        csync,     
-    output        video
+    output        video,
+
+    output        VSync,
+    output        HSync,    
+    output        VBlank,
+    output        HBlank,
+    output        video_de  
 );
 
 reg   [9:0] fb_a_addr;
@@ -58,7 +64,7 @@ pixie_dp_front_end pixie_dp_front_end (
     .data       (data),
 
     .dmao       (dmao),
-    .int        (int),
+    .INT        (INT),
     .efx        (efx),
 
     .mem_addr   (fb_a_addr),
@@ -66,7 +72,7 @@ pixie_dp_front_end pixie_dp_front_end (
     .mem_wr_en  (fb_a_en)
 );
 
-assign fb_a_en2 <= (clk_enable & fb_a_en);
+assign fb_a_en2 = (clk_enable & fb_a_en);
 
 pixie_dp_frame_buffer pixie_dp_frame_buffer (
     .clk_a    (clk),
@@ -87,7 +93,13 @@ pixie_dp_back_end pixie_dp_back_end (
     .fb_data    (fb_b_data),
 
     .csync      (csync),
-    .video      (video)
+    .video      (video),
+
+    .VSync      (VSync),
+    .HSync      (HSync),    
+    .VBlank     (VBlank),
+    .HBlank     (HBlank),
+    .video_de   (video_de)  
 );
 
 endmodule

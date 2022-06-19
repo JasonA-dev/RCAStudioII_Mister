@@ -26,35 +26,35 @@ module pixie_dp_front_end
     input        disp_off,
     input  [7:0] data,
 
-    output       dmao,
-    output       int,
-    output       efx,
+    output reg      dmao,
+    output reg      INT,
+    output reg      efx,
 
-    output [9:0] mem_addr,
-    output [7:0] mem_data,
+    output reg [9:0] mem_addr,
+    output reg [7:0] mem_data,
     output       mem_wr_en
 );
 
-reg         bytes_per_line  = 'd14;
-reg         lines_per_frame = 'd262;
+reg         bytes_per_line  = 2'd14;
+reg         lines_per_frame = 3'd262;
 
-wire        sc_fetch;
-wire        sc_execute;
-wire        sc_dma;
-wire        sc_interrupt;
+reg        sc_fetch;
+reg        sc_execute;
+reg        sc_dma;
+reg        sc_interrupt;
 
-wire        enabled;
+reg        enabled;
 
-wire [3:0]  horizontal_counter;
-wire        horizontal_end;
+reg [3:0]  horizontal_counter;
+reg        horizontal_end;
   
-wire [8:0]  vertical_counter;
-wire        vertical_end;
+reg [8:0]  vertical_counter;
+reg        vertical_end;
 
-wire        v_active;
+reg        v_active;
 
-wire        dma_xfer;
-wire [9:0]  addr_counter;
+reg       dma_xfer;
+reg [9:0]  addr_counter;
 
 
 always @(posedge clk) begin
@@ -77,48 +77,50 @@ always @(posedge clk) begin
     end
 end
 
-horizontal_end <= (horizontal_counter==(bytes_per_line-1);
-
 always @(posedge clk) begin
     if (clk_enable) begin
       if (horizontal_end) 
-        horizontal_counter <= 'd0;
+        horizontal_counter <= 1'd0;
       else
-        horizontal_counter <= horizontal_counter + 1'd1;
+        horizontal_counter <= horizontal_counter+1'd1;
     end
+
+    horizontal_end <= (horizontal_counter==(bytes_per_line-1'd1));
+    vertical_end <= (vertical_counter==(lines_per_frame-1'd1));
 end
 
-vertical_end <= (vertical_counter==(lines_per_frame-1));
+
 
 always @(posedge clk) begin
     if(clk_enable && horizontal_end) begin
 
       if (vertical_end)
-        vertical_counter <= 'd0;
+        vertical_counter <= 1'd0;
       else
         vertical_counter <= vertical_counter + 1'd1;
       
-      efx       <= ((vertical_counter >= 76  && vertical_counter < 80) || (vertical_counter >= 204 && vertical_counter < 208));
-      int       <= (enabled && vertical_counter >= 78 && vertical_counter < 80);
-      v_active  <= (enabled && vertical_counter >= 80 && vertical_counter < 208);
+      efx       <= ((vertical_counter >= 2'd76  && vertical_counter < 2'd80) || (vertical_counter >= 3'd204 && vertical_counter < 3'd208));
+      INT       <= (enabled && vertical_counter >= 2'd78 && vertical_counter < 2'd80);
+      v_active  <= (enabled && vertical_counter >= 2'd80 && vertical_counter < 3'd208);
     end 
 end
 
-dmao <= (enabled && v_active && horizontal_counter >= 1 && horizontal_counter < 9);
-dma_xfer <= (enabled && sc_dma == '1');
 
 always @(posedge clk) begin
+
     if(clk_enable) begin
-      if (reset || (horizontal_end && vertical_end)
-        addr_counter <= 'd0;
+      if (reset || (horizontal_end && vertical_end))
+        addr_counter <= 1'd0;
       else if (dma_xfer)
-        addr_counter <= addr_counter + 1;
+        addr_counter <= addr_counter + 1'd1;
     end 
+
+    dmao <= (enabled && v_active && horizontal_counter >= 1'd1 && horizontal_counter < 1'd9);
+    dma_xfer <= (enabled && sc_dma);
+
+    mem_addr  <= addr_counter;
+    mem_data  <= data;
+    mem_wr_en <= dma_xfer;
 end
-
-
-mem_addr  <= addr_counter;
-mem_data  <= data;
-mem_wr_en <= dma_xfer;
 
 endmodule

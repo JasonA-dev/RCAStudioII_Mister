@@ -19,61 +19,77 @@
 module pixie_dp_back_end
 (
     input         clk,
-    output        fb_read_en,
+    output  reg      fb_read_en,
     output  [9:0] fb_addr,
     input   [7:0] fb_data,
     output        csync,
-    output        video
+    output  reg      video,
+
+    output        VSync,
+    output        HSync,    
+    output        VBlank,
+    output        HBlank,
+    output        video_de      
 );
 
-wire pixels_per_line    = 'd112;
-wire active_h_pixels    = 'd64;
-wire hsync_start_pixel  = 'd82;  // two cycles later to account for pipeline delay
-wire hsync_width_pixels = 'd12;
+wire pixels_per_line    = 3'd112;
+wire active_h_pixels    = 2'd64;
+wire hsync_start_pixel  = 2'd82;  // two cycles later to account for pipeline delay
+wire hsync_width_pixels = 2'd12;
 
-wire lines_per_frame    = 'd262;
-wire active_v_lines     = 'd128;
-wire vsync_start_line   = 'd182;
-wire vsync_height_lines = 'd16;
+wire lines_per_frame    = 3'd262;
+wire active_v_lines     = 3'd128;
+wire vsync_start_line   = 3'd182;
+wire vsync_height_lines = 2'd16;
 
-wire        load_pixel_shift_reg;
-wire [7:0]  pixel_shift_reg;
+reg        load_pixel_shift_reg;
+reg [7:0]  pixel_shift_reg;
   
-wire [7:0]  horizontal_counter;
-wire        hsync;
-wire        active_h_adv2;  // pipeline delay
-wire        active_h_adv1;  // pipeline delay
-wire        active_h;
-wire        advance_v;
+reg [7:0]  horizontal_counter;
+reg        hsync;
+reg        active_h_adv2;  // pipeline delay
+reg        active_h_adv1;  // pipeline delay
+reg        active_h;
+reg        advance_v;
     
 reg   [8:0] vertical_counter;
-wire        vsync;
-wire        active_v;
+reg        vsync;
+reg        active_v;
   
 wire        active_video;
 
-fb_addr[9:3] = vertical_counter[6:0];
-fb_addr[2:0] = horizontal_counter[5:3];
+
+assign VSync = vsync;
+assign HSync = hsync;
+assign video_de = active_video;
+assign VBlank = vertical_counter > 79;
+assign HBlank = horizontal_counter > 28;
+
+assign fb_addr[9:3] = vertical_counter[6:0];
+assign fb_addr[2:0] = horizontal_counter[5:3];
+
+reg [2:0] new_v;
+reg [2:0] new_h;
 
 // horizontal_counter_p     
 always @(posedge clk) begin
 
-    if (horizontal_counter == (pixels_per_line - 1)) 
-        new_h <= {0, horizontal_counter'length};
+    if (horizontal_counter == (pixels_per_line-1'd1)) 
+        new_h <= 1'd0;
     else
         new_h <= horizontal_counter + 1'd1;
 
     horizontal_counter <= new_h;
 
-    fb_read_en <= new_h[2:0]=="000";
-    load_pixel_shift_reg <= new_h[2:0]=="001";
-    active_h_adv2 <= new_h < active_h_pixels;
+    fb_read_en <= (new_h[2:0]==3'b000) ? 1'b1 : 1'b0;
+    load_pixel_shift_reg <= (new_h[2:0]==3'b001) ? 1'b1 : 1'b0;
+    active_h_adv2 <= (new_h<active_h_pixels) ? 1'b1 : 1'b0;
 
     active_h_adv1 <= active_h_adv2;
     active_h      <= active_h_adv1;
 
-    hsync <= new_h>=hsync_start_pixel && new_h<hsync_start_pixel+hsync_width_pixels;
-    advance_v <= new_h==(pixels_per_line-1);
+    hsync <= (new_h>=hsync_start_pixel && new_h<hsync_start_pixel+hsync_width_pixels) ? 1'b1 : 1'b0;
+    advance_v <= new_h==(pixels_per_line-1'd1) ? 1'b1 : 1'b0;
 
 end
 
@@ -82,19 +98,19 @@ always @(posedge clk) begin
     if (advance_v==1'b1) begin
 
       if (vertical_counter==(lines_per_frame-1))
-        new_v <= {0, vertical_counter'length};
+        new_v <= 1'd0;
       else
         new_v <= vertical_counter + 1'd1;
 
       vertical_counter <= new_v;
-      active_v <= (new_v<active_v_lines);
-      vsync <= (new_v>=vsync_start_line && new_v<vsync_start_line+vsync_height_lines);
+      active_v <= (new_v<active_v_lines) ? 1'b1 : 1'b0;
+      vsync <= (new_v>=vsync_start_line && new_v<vsync_start_line+vsync_height_lines) ? 1'b1 : 1'b0;
     
     end
 end
 
-csync <= hsync ^ vsync;
-active_video <= active_h & active_v;
+assign csync = hsync ^ vsync;
+assign active_video = active_h & active_v;
 
 //pixel_shifter_p
 always @(posedge clk) begin

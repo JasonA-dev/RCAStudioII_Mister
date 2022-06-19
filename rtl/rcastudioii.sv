@@ -58,6 +58,7 @@ wire   EFx;
 wire   CompSync;
 wire   Locked;
 
+/*
 cdp1861 cdp1861 (
     .clock(clk),
     .reset(reset),
@@ -83,6 +84,33 @@ cdp1861 cdp1861 (
     .VBlank(VBlank),
     .HBlank(HBlank),
     .video_de(video_de)     
+);
+*/
+pixie_dp pixie_dp (
+    // front end, CDP1802 bus clock domain
+    .clk(clk),
+    .reset(reset),  
+    .clk_enable(1'b1),
+
+    .sc(SC),         
+    .disp_on(1'b1),
+    .disp_off(1'b0),
+    .data(ram_q),     
+
+    .dmao(DMAO),     
+    .INT(INT),     
+    .efx(EFx),
+
+    // back end, video clock domain
+    .video_clk(clk),
+    .csync(CompSync),     
+    .video(video),
+
+    .VSync(VSync),
+    .HSync(HSync),    
+    .VBlank(VBlank),
+    .HBlank(HBlank),
+    .video_de(video_de)       
 );
 
 ////////////////// KEYPAD //////////////////////////////////////////////////////////////////
@@ -129,7 +157,7 @@ wire cpu_inp;
 wire cpu_out;
 
 wire Q;
-reg  [3:0] EF = 4'b0100;
+reg  [3:0] EF = 4'b0000;
 // 1000  EF4 Key pressed on keypad 2
 // 0100  EF3 Key pressed on keypad 1
 // 0010  EF2

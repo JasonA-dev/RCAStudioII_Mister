@@ -26,7 +26,7 @@ module pixie_dp_frame_buffer
     input clk_b,
     input en_b,
     input [9:0] addr_b,
-    output [7:0] d_out_b
+    output reg [7:0] d_out_b
 );
 
 reg [7:0] ram[1023];
