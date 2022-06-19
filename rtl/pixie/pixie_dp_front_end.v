@@ -18,21 +18,21 @@
 
 module pixie_dp_front_end 
 (
-    input        clk,
-    input        clk_enable,
-    input        reset,
-    input  [1:0] sc,
-    input        disp_on,
-    input        disp_off,
-    input  [7:0] data,
+    input            clk,
+    input            clk_enable,
+    input            reset,
+    input      [1:0] sc,
+    input            disp_on,
+    input            disp_off,
+    input      [7:0] data,
 
-    output reg      dmao,
-    output reg      INT,
-    output reg      efx,
+    output reg       dmao,
+    output reg       INT,
+    output reg       efx,
 
     output reg [9:0] mem_addr,
     output reg [7:0] mem_data,
-    output       mem_wr_en
+    output reg       mem_wr_en
 );
 
 reg         bytes_per_line  = 2'd14;

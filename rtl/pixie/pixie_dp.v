@@ -44,15 +44,15 @@ module pixie_dp
     output        video_de  
 );
 
-reg   [9:0] fb_a_addr;
-reg   [7:0] fb_a_data;
-wire        fb_a_en;
+wire   [9:0] fb_a_addr;
+wire   [7:0] fb_a_data;
+wire         fb_a_en;
 
-wire        fb_a_en2;
+wire         fb_a_en2;
 
-reg   [9:0] fb_b_addr;
-reg   [7:0] fb_b_data;
-wire        fb_b_en;
+wire   [9:0] fb_b_addr;
+wire   [7:0] fb_b_data;
+wire         fb_b_en;
 
 pixie_dp_front_end pixie_dp_front_end (
     .clk        (clk),

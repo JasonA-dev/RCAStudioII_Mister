@@ -118,7 +118,7 @@ always @(posedge clk) begin
     if (load_pixel_shift_reg==1'b1)
         pixel_shift_reg <= fb_data;
     else
-        pixel_shift_reg <= {pixel_shift_reg[6:0], 0};
+        pixel_shift_reg <= {pixel_shift_reg[6:0], 1'b0};
 
     video <= active_video & pixel_shift_reg[7];
 end
