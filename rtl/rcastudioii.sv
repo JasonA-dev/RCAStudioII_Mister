@@ -18,27 +18,24 @@
 
 module rcastudioii
 (
-	input         clk,
-	input         reset,
+	input              clk,
+	input              reset,
 	
-  input wire        ioctl_download,
-  input wire  [7:0] ioctl_index,
-  input wire        ioctl_wr,
-  input      [24:0] ioctl_addr,
-	input       [7:0] ioctl_dout,
+  input wire         ioctl_download,
+  input wire   [7:0] ioctl_index,
+  input wire         ioctl_wr,
+  input       [24:0] ioctl_addr,
+	input        [7:0] ioctl_dout,
 
-	//input         pal,
-	//input         scandouble,
+  input       [10:0] ps2_key,
+	output reg         ce_pix,
 
-  input   [10:0] ps2_key,
-	output reg    ce_pix,
-
-	output reg    HBlank,
-	output reg    HSync,
-	output reg    VBlank,
-	output reg    VSync,
-  output reg    video_de,
-	output  [7:0] video
+	output reg         HBlank,
+	output reg         HSync,
+	output reg         VBlank,
+	output reg         VSync,
+  output reg         video_de,
+	output       [7:0] video
 );
 
 ////////////////// VIDEO //////////////////////////////////////////////////////////////////
@@ -204,11 +201,11 @@ dpram #(.ADDR(12)) dpram (
 
 ////////////////// DMA //////////////////////////////////////////////////////////////////
 
-wire [7:0] rom_dout;
-wire [7:0] cart_dout;
-wire [7:0] pram_dout;
-wire [7:0] vram_dout;
-wire [7:0] mcart_dout;
+//wire [7:0] rom_dout;
+//wire [7:0] cart_dout;
+//wire [7:0] pram_dout;
+//wire [7:0] vram_dout;
+//wire [7:0] mcart_dout;
 
 //0000-02FF	ROM 	      RCA System ROM : Interpreter
 //0300-03FF	ROM	        RCA System ROM : Always present
