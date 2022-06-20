@@ -85,8 +85,8 @@ always @(posedge clk) begin
         horizontal_counter <= horizontal_counter+1'd1;
     end
 
-    horizontal_end <= (horizontal_counter==(bytes_per_line-1'd1));
-    vertical_end <= (vertical_counter==(lines_per_frame-1'd1));
+    horizontal_end <= (horizontal_counter==(bytes_per_line-1'd1)) ? 1'b1 : 1'b0;
+    vertical_end   <= (vertical_counter==(lines_per_frame-1'd1))  ? 1'b1 : 1'b0;
 end
 
 
@@ -99,9 +99,9 @@ always @(posedge clk) begin
       else
         vertical_counter <= vertical_counter + 1'd1;
       
-      efx       <= ((vertical_counter >= 2'd76  && vertical_counter < 2'd80) || (vertical_counter >= 3'd204 && vertical_counter < 3'd208));
-      INT       <= (enabled && vertical_counter >= 2'd78 && vertical_counter < 2'd80);
-      v_active  <= (enabled && vertical_counter >= 2'd80 && vertical_counter < 3'd208);
+      efx       <= ((vertical_counter >= 2'd76  && vertical_counter < 2'd80) || (vertical_counter >= 3'd204 && vertical_counter < 3'd208)) ? 1'b1 : 1'b0;
+      INT       <= (enabled && vertical_counter >= 2'd78 && vertical_counter < 2'd80) ? 1'b1 : 1'b0;
+      v_active  <= (enabled && vertical_counter >= 2'd80 && vertical_counter < 3'd208) ? 1'b1 : 1'b0;
     end 
 end
 
@@ -115,8 +115,8 @@ always @(posedge clk) begin
         addr_counter <= addr_counter + 1'd1;
     end 
 
-    dmao <= (enabled && v_active && horizontal_counter >= 1'd1 && horizontal_counter < 1'd9);
-    dma_xfer <= (enabled && sc_dma);
+    dmao <= (enabled && v_active && horizontal_counter >= 1'd1 && horizontal_counter < 1'd9) ? 1'b1 : 1'b0;
+    dma_xfer <= (enabled && sc_dma) ? 1'b1 : 1'b0;
 
     mem_addr  <= addr_counter;
     mem_data  <= data;

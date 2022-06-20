@@ -157,11 +157,11 @@ wire cpu_inp;
 wire cpu_out;
 
 wire Q;
-reg  [3:0] EF = 4'b0000;
+reg  [3:0] EF = 4'b0100;
 // 1000  EF4 Key pressed on keypad 2
 // 0100  EF3 Key pressed on keypad 1
-// 0010  EF2
-// 0001  EF1 Video display monitoring
+// 0010  EF2 ?? Pixie
+// 0001  EF1 ?? Video display monitoring
 
 wire unsupported;
 
