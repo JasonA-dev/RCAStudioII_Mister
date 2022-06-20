@@ -35,8 +35,8 @@ module pixie_dp_front_end
     output reg       mem_wr_en
 );
 
-reg         bytes_per_line  = 2'd14;
-reg         lines_per_frame = 3'd262;
+reg        bytes_per_line  = 2'd14;
+reg        lines_per_frame = 3'd262;
 
 reg        sc_fetch;
 reg        sc_execute;
@@ -53,7 +53,7 @@ reg        vertical_end;
 
 reg        v_active;
 
-reg       dma_xfer;
+reg        dma_xfer;
 reg [9:0]  addr_counter;
 
 
@@ -89,8 +89,6 @@ always @(posedge clk) begin
     vertical_end   <= (vertical_counter==(lines_per_frame-1'd1))  ? 1'b1 : 1'b0;
 end
 
-
-
 always @(posedge clk) begin
     if(clk_enable && horizontal_end) begin
 
@@ -104,7 +102,6 @@ always @(posedge clk) begin
       v_active  <= (enabled && vertical_counter >= 2'd80 && vertical_counter < 3'd208) ? 1'b1 : 1'b0;
     end 
 end
-
 
 always @(posedge clk) begin
 

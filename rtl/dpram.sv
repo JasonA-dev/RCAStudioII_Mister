@@ -43,9 +43,11 @@ module dpram #(
 // Shared memory
 logic [DATA-1:0] mem [(2**ADDR)-1:0];
 
-/* initial begin
+/*
+initial begin
     mem = '{default:'0};
-end */
+end
+*/
 
 // Port A
 always @(posedge clk) begin

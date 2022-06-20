@@ -48,22 +48,11 @@ module top(
    assign VGA_G = {8{video}};
    assign VGA_B = {8{video}};
     
-
    // MAP OUTPUTS
    assign AUDIO_L = {audio,audio};
    assign AUDIO_R = AUDIO_L;
 
-   reg ce_pix = 1'b1;
-   
-   /*
-   always @(posedge clk_48) begin
-      reg old_clk;
-      
-      old_clk <= clk_48;
-      ce_pix <= old_clk & ~clk_48;
-   end
-   */
-
+wire ce_pix;
 wire reset = ioctl_download;
 
 reg key_strobe;
@@ -71,24 +60,19 @@ wire key_strobe = old_keystb ^ ps2_key[10];
 reg old_keystb = 0;
 always @(posedge clk_48) old_keystb <= ps2_key[10];
 
-
 rcastudioii rcastudio
 (
 	.clk(clk_48),
 	.reset(reset),
 	
-   //ioctl
 	.ioctl_download(ioctl_download),
 	.ioctl_index(ioctl_index),
 	.ioctl_wr(ioctl_wr),
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout),
 
-	.pal(1'b1),
-	.scandouble(forced_scandoubler),
-
 	.ps2_key(ps2_key),
-//	.ce_pix(ce_pix),
+	.ce_pix(ce_pix),
 
 	.HBlank(HBlank),
 	.HSync(HSync),
@@ -97,6 +81,5 @@ rcastudioii rcastudio
 
 	.video(video)
 );
-
 
 endmodule

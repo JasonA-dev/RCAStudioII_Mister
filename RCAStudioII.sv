@@ -270,7 +270,7 @@ wire HBlank;
 wire HSync;
 wire VBlank;
 wire VSync;
-wire ce_pix = 1'b1;
+wire ce_pix;
 wire [7:0] video;
 
 rcastudioii rcastudio
@@ -285,11 +285,11 @@ rcastudioii rcastudio
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_data),
 
-	.pal(status[2]),
-	.scandouble(forced_scandoubler),
+	//.pal(status[2]),
+	//.scandouble(forced_scandoubler),
 
 	.ps2_key(ps2_key),
-//	.ce_pix(ce_pix),
+	.ce_pix(ce_pix),
 
 	.HBlank(HBlank),
 	.HSync(HSync),
@@ -305,9 +305,6 @@ assign CE_PIXEL = ce_pix;
 assign VGA_DE = ~(HBlank | VBlank);
 assign VGA_HS = HSync;
 assign VGA_VS = VSync;
-//assign VGA_G  = (!col || col == 2) ? video : 8'd0;
-//assign VGA_R  = (!col || col == 1) ? video : 8'd0;
-//assign VGA_B  = (!col || col == 3) ? video : 8'd0;
 assign VGA_R = {8{video}};
 assign VGA_G = {8{video}};
 assign VGA_B = {8{video}};
