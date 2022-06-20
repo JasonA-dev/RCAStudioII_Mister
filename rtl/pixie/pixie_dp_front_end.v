@@ -35,8 +35,8 @@ module pixie_dp_front_end
     output reg       mem_wr_en
 );
 
-reg        bytes_per_line  = 2'd14;
-reg        lines_per_frame = 3'd262;
+parameter  bytes_per_line  = 2'd14;
+parameter  lines_per_frame = 3'd262;
 
 reg        sc_fetch;
 reg        sc_execute;

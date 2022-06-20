@@ -19,11 +19,11 @@
 module pixie_dp_back_end
 (
     input         clk,
-    output  reg      fb_read_en,
+    output  reg   fb_read_en,
     output  [9:0] fb_addr,
     input   [7:0] fb_data,
     output        csync,
-    output  reg      video,
+    output  reg   video,
 
     output        VSync,
     output        HSync,    
@@ -52,18 +52,18 @@ reg        active_h_adv1;  // pipeline delay
 reg        active_h;
 reg        advance_v;
     
-reg   [8:0] vertical_counter;
+reg  [8:0] vertical_counter;
 reg        vsync;
 reg        active_v;
   
-wire        active_video;
+wire       active_video;
 
 
 assign VSync    = vsync;
 assign HSync    = hsync;
 assign video_de = active_video;
-assign VBlank   = horizontal_counter > 'd79;
-assign HBlank   = vertical_counter > 'd28;
+assign VBlank   = horizontal_counter > 'd111;
+assign HBlank   = vertical_counter > 'd261;
 
 assign fb_addr[9:3] = vertical_counter[6:0];
 assign fb_addr[2:0] = horizontal_counter[5:3];

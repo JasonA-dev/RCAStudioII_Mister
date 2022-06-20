@@ -32,7 +32,7 @@ module top(
    
    // Core inputs/outputs
    wire [7:0] audio;
-   wire [8:0] rgb;
+   //wire [8:0] rgb;
    wire [3:0] led/*verilator public_flat*/;
 
    wire VSync, HSync;
@@ -43,7 +43,7 @@ module top(
    assign VGA_VB = VBlank;
    assign VGA_HB = HBlank;
 
-   // Convert 3bpp output to 8bpp
+   // Convert 1bpp output to 8bpp
    assign VGA_R = {8{video}};
    assign VGA_G = {8{video}};
    assign VGA_B = {8{video}};
@@ -52,7 +52,7 @@ module top(
    assign AUDIO_L = {audio,audio};
    assign AUDIO_R = AUDIO_L;
 
-wire ce_pix;
+wire ce_pix = 1'b1;
 wire reset = ioctl_download;
 
 reg key_strobe;
@@ -72,7 +72,7 @@ rcastudioii rcastudio
 	.ioctl_dout(ioctl_dout),
 
 	.ps2_key(ps2_key),
-	.ce_pix(ce_pix),
+	//.ce_pix(ce_pix),
 
 	.HBlank(HBlank),
 	.HSync(HSync),

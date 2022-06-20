@@ -202,9 +202,9 @@ assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
 
 `include "build_id.v" 
 localparam CONF_STR = {
-	"RCASTudioII;;",
+	"RCAStudioII;;",
 	"-;",	
-	"F01,binst2,Load Cartridge;",
+	"F01,bin,Load Cartridge;",
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O[2],TV Mode,NTSC,PAL;",
@@ -260,7 +260,7 @@ pll pll
 );
 
 wire reset = ioctl_download;
-//wire reset = RESET | status[0] | buttons[1];
+//wire reset = RESET | status[0] | buttons[1] | ioctl_download;
 
 //////////////////////////////////////////////////////////////////
 
@@ -270,7 +270,7 @@ wire HBlank;
 wire HSync;
 wire VBlank;
 wire VSync;
-wire ce_pix;
+wire ce_pix = 1'b1;
 wire [7:0] video;
 
 rcastudioii rcastudio
@@ -278,31 +278,27 @@ rcastudioii rcastudio
 	.clk(clk_sys),
 	.reset(reset),
 	
-	//ioctl
 	.ioctl_download(ioctl_download),
 	.ioctl_index(ioctl_index),
 	.ioctl_wr(ioctl_wr),
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_data),
 
-	//.pal(status[2]),
-	//.scandouble(forced_scandoubler),
-
 	.ps2_key(ps2_key),
-	.ce_pix(ce_pix),
+	//.ce_pix(ce_pix),
 
 	.HBlank(HBlank),
 	.HSync(HSync),
 	.VBlank(VBlank),
 	.VSync(VSync),
-
+  	.video_de(VGA_DE),
 	.video(video)
 );
 
 assign CLK_VIDEO = clk_sys;
 assign CE_PIXEL = ce_pix;
 
-assign VGA_DE = ~(HBlank | VBlank);
+//assign VGA_DE = ~(HBlank | VBlank);
 assign VGA_HS = HSync;
 assign VGA_VS = VSync;
 assign VGA_R = {8{video}};

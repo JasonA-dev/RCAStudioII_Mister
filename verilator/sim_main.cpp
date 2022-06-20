@@ -70,9 +70,9 @@ const int input_pause = 11;
 
 // Video
 // -----
-#define VGA_WIDTH 320
-#define VGA_HEIGHT 240
-#define VGA_ROTATE -1  // 90 degrees anti-clockwise
+#define VGA_WIDTH 262
+#define VGA_HEIGHT 112
+#define VGA_ROTATE 0  // 90 degrees anti-clockwise
 #define VGA_SCALE_X vga_scale
 #define VGA_SCALE_Y vga_scale
 SimVideo video(VGA_WIDTH, VGA_HEIGHT, VGA_ROTATE);
@@ -453,6 +453,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("reset:		0x%02X", top->top__DOT__rcastudio__DOT__reset);	
 		ImGui::Text("ps2_key:	0x%02X", top->top__DOT__ps2_key);		
 		ImGui::Text("code:		0x%02X", top->top__DOT__rcastudio__DOT__code);	
+		ImGui::Text("pressed:	0x%02X", top->top__DOT__rcastudio__DOT__pressed);			
 		ImGui::Spacing();														
 		ImGui::End();
 

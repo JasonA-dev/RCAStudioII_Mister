@@ -42,7 +42,7 @@ module rcastudioii
 
 wire        Disp_On;
 wire        Disp_Off;
-reg  [1:0]  SC = 2'b01;
+reg  [1:0]  SC = 2'b10;
 reg  [7:0]  video_din;
 
 wire   INT;
@@ -57,8 +57,8 @@ pixie_dp pixie_dp (
     .clk_enable(1'b1),
 
     .sc(SC),         
-    .disp_on(1'b1),
-    .disp_off(1'b0),
+    .disp_on(~io_n[0]),
+    .disp_off(io_n[0]),
     .data(video_din),     
 
     .dmao(DMAO),     
@@ -79,7 +79,8 @@ pixie_dp pixie_dp (
 
 ////////////////// KEYPAD //////////////////////////////////////////////////////////////////
 
-reg [7:0] btnKP1 = 8'hff;
+reg [7:0] btnKP1 = 'hff;
+reg [7:0] btnKP2 = 'hff;
 
 wire       pressed = ps2_key[9];
 wire [7:0] code    = ps2_key[7:0];
@@ -89,17 +90,19 @@ always @(posedge clk) begin
 
 	if(old_state != ps2_key[10]) begin
 		case(code)
-			'h16: btnKP1  <= 1'd1; // Keypad1 1
-			'h1E: btnKP1  <= 1'd2; // Keypad1 2
-      'h26: btnKP1  <= 1'd3; // Keypad1 3
-      'h25: btnKP1  <= 1'd4; // Keypad1 4
-      'h2E: btnKP1  <= 1'd5; // Keypad1 5
-      'h36: btnKP1  <= 1'd6; // Keypad1 6
-      'h3D: btnKP1  <= 1'd7; // Keypad1 7
-      'h3E: btnKP1  <= 1'd8; // Keypad1 8
-      'h46: btnKP1  <= 1'd9; // Keypad1 9
-      'h45: btnKP1  <= 1'd0; // Keypad1 0
+			'h16: btnKP1  <= 'd1; // Keypad1 1
+			'h1E: btnKP1  <= 'd2; // Keypad1 2
+      'h26: btnKP1  <= 'd3; // Keypad1 3
+      'h25: btnKP1  <= 'd4; // Keypad1 4
+      'h2E: btnKP1  <= 'd5; // Keypad1 5
+      'h36: btnKP1  <= 'd6; // Keypad1 6
+      'h3D: btnKP1  <= 'd7; // Keypad1 7
+      'h3E: btnKP1  <= 'd8; // Keypad1 8
+      'h46: btnKP1  <= 'd9; // Keypad1 9
+      'h45: btnKP1  <= 'd0; // Keypad1 0
+      default: btnKP1 <= 'hff; // Keypad1
 		endcase
+    //$display("code %x btnKP1 %x", code, btnKP1);
 	end
 
 end
@@ -112,22 +115,25 @@ wire cpu_inp;
 wire cpu_out;
 
 wire Q;
-reg  [3:0] EF;
-// 1000  EF4 Key pressed on keypad 2
-// 0100  EF3 Key pressed on keypad 1
-// 0010  EF2 
-// 0001  EF1 Video display monitoring, driven by EFx from cpu
 
+reg  [3:0] EF = 4'b1111;
+// 0111  EF4 Key pressed on keypad 2
+// 1011  EF3 Key pressed on keypad 1
+// 1101  EF2 not connected
+// 1110  EF1 Video display monitoring, driven by efx from 1861
 always @(posedge clk) begin
-  if(EFx)
-    EF = 4'b1101;
-  else if (btnKP1 != 8'hff)
-    EF = 4'b1011;
-  else
-    EF = 4'b1111;
+    if ((btnKP1 != 'hff) && pressed)
+      EF <= 4'b1011;
+    else if ((btnKP2 != 'hff) && pressed)
+      EF <= 4'b0111;    
+    else if (EFx)
+      EF <= 4'b1110;
+    else
+      EF <= 4'b1111;
 end
 
 wire unsupported;
+wire [2:0] io_n;
 
 cdp1802 cdp1802 (
   .clock    (clk),
@@ -138,9 +144,9 @@ cdp1802 cdp1802 (
 
   .io_din   (btnKP1),     
   .io_dout  (cpu_dout),    
-  .io_n     (),         // O 2:0 IO control lines: N2,N1,N0
-  .io_inp   (cpu_inp),         // O IO input signal
-  .io_out   (cpu_out),         // O IO output signal
+  .io_n     (io_n),         // O 2:0 IO control lines: N2,N1,N0
+  .io_inp   (cpu_inp),  // O IO input signal
+  .io_out   (cpu_out),  // O IO output signal
 
   .unsupported(unsupported),
 
@@ -201,12 +207,6 @@ dpram #(.ADDR(12)) dpram (
 
 ////////////////// DMA //////////////////////////////////////////////////////////////////
 
-//wire [7:0] rom_dout;
-//wire [7:0] cart_dout;
-//wire [7:0] pram_dout;
-//wire [7:0] vram_dout;
-//wire [7:0] mcart_dout;
-
 //0000-02FF	ROM 	      RCA System ROM : Interpreter
 //0300-03FF	ROM	        RCA System ROM : Always present
 //0400-07FF	ROM	        Games Programs, built in (no cartridge)
@@ -229,20 +229,15 @@ reg [7:0] ram_din;
 
 // ram writes
 always @(posedge clk) begin
+  
   if (ram_wr) begin
     if(vram_cs) begin  
-      if(ram_d < 2'd01) begin
-        video_din <= 8'h50;
-        ram_din <= 8'h50;
-        //video_din <= ram_d;
-        //$display("video_din %x addr %x", video_din, ram_a);
-      end
-    end
-    else begin
-      ram_din <= ram_d;  
-      //$display("ram_din %x addr %x", ram_din, ram_a); 
+      video_din <= ram_d;
+      //$display("video_din %x addr %x", video_din, ram_a);
     end
   end
+
+  ram_din <= ram_d;    
 end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)
