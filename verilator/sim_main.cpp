@@ -464,7 +464,9 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Begin("Sim");
 		ImGui::Text("reset:		0x%02X", top->top__DOT__rcastudio__DOT__reset);	
 		ImGui::Text("ps2_key:	0x%02X", top->top__DOT__ps2_key);		
-		ImGui::Text("code:		0x%02X", top->top__DOT__rcastudio__DOT__code);	
+		ImGui::Text("code:		0x%04X", top->top__DOT__rcastudio__DOT__code);	
+		ImGui::Text("DI:		0x%04X", top->top__DOT__rcastudio__DOT__DI);	
+		ImGui::Text("AB:		0x%04X", top->top__DOT__rcastudio__DOT__AB);					
 		ImGui::Spacing();														
 		ImGui::End();
 

@@ -157,7 +157,7 @@ wire cpu_inp;
 wire cpu_out;
 
 wire Q;
-reg  [3:0] EF = 4'b0100;
+reg  [3:0] EF = 4'b0010;
 // 1000  EF4 Key pressed on keypad 2
 // 0100  EF3 Key pressed on keypad 1
 // 0010  EF2 ?? Pixie
@@ -236,6 +236,12 @@ dpram #(.ADDR(12)) dpram (
 
 ////////////////// DMA //////////////////////////////////////////////////////////////////
 
+wire [7:0] rom_dout;
+wire [7:0] cart_dout;
+wire [7:0] pram_dout;
+wire [7:0] vram_dout;
+wire [7:0] mcart_dout;
+
 wire dma_busy;
 
 //0000-02FF	ROM 	      RCA System ROM : Interpreter
@@ -256,7 +262,31 @@ wire pram_cs  = AB ==? 16'b0000_1000_xxxx_xxxx;
 wire vram_cs  = AB ==? 16'b0000_1001_xxxx_xxxx; 
 wire mcart_cs = AB ==? 16'b0000_101x_xxxx_xxxx; 
 
+reg [7:0] DI;
 wire [15:0] AB = ram_a;
+
+always @(posedge clk) begin
+  DI <= rom_cs ? rom_dout :
+  cart_cs ? cart_dout :
+  pram_cs ? pram_dout :
+  vram_cs ? vram_dout :    
+  mcart_cs ? mcart_dout : 8'hff;
+end
+
+dma dma(
+  .clk(clk),
+  .rdy(dma_rdy),
+  .ctrl(dma_ctrl),
+  .src_addr({ dma_src_hi, dma_src_lo }),
+  .dst_addr({ dma_dst_hi, dma_dst_lo }),
+  .addr(dma_addr), // => to AB
+  .din(DI),
+  .dout(dma_dout),
+  .length(dma_length),
+  .busy(dma_busy),
+  .sel(dma_sel),
+  .write(dma_write)
+);
 
 /////////////////////////////////////////////////////////////////////////////////////////
 

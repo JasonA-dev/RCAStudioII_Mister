@@ -58,6 +58,7 @@ V_SRC = \
 	$(RTL)/cdp1802.v \
 	$(RTL)/cdp1861.v \
 	$(RTL)/dpram.sv \	
+	$(RTL)/dma.v \		
 	$(RTL)/rom.v \
 	$(RTL)/pixie/pixie_dp_back_end.v \
 	$(RTL)/pixie/pixie_dp_front_end.v \
