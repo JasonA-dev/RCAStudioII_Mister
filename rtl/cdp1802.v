@@ -29,8 +29,8 @@ module cdp1802 (
   input      [7:0]    io_din,     // IO data in
   output     [7:0]    io_dout,    // IO data out
   output     [2:0]    io_n,       // IO control lines: N2,N1,N0
-  output              io_inp,     // IO input signal
-  output              io_out,     // IO output signal
+  output  wire        io_inp,     // IO input signal
+  output  wire        io_out,     // IO output signal
 
   output              unsupported,// unsupported instruction signal
 

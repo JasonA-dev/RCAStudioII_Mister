@@ -70,8 +70,8 @@ const int input_pause = 11;
 
 // Video
 // -----
-#define VGA_WIDTH 262
-#define VGA_HEIGHT 112
+#define VGA_WIDTH 256
+#define VGA_HEIGHT 128
 #define VGA_ROTATE -1  // 90 degrees anti-clockwise
 #define VGA_SCALE_X vga_scale
 #define VGA_SCALE_Y vga_scale
@@ -319,7 +319,7 @@ int main(int argc, char** argv, char** env) {
 		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__dpram__DOT__mem, 4096, 0);
 		ImGui::End();		
 		ImGui::Begin("Pixie FB");
-		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_frame_buffer__DOT__ram, 1023, 0);		
+		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_frame_buffer__DOT__ram, 512, 0);		
 		ImGui::End();
 
 		// Debug 1802 cpu
@@ -345,7 +345,8 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("io_din:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_din);	
 		ImGui::Text("io_dout:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_dout);
 		ImGui::Text("io_n:         0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_n);	
-		ImGui::Text("io_inp:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_inp);		
+		ImGui::Text("io_inp:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_inp);	
+		ImGui::Text("io_out:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_out);					
 		ImGui::Spacing();	
 		ImGui::Text("unsupported:  0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__unsupported);	
 		ImGui::Spacing();		

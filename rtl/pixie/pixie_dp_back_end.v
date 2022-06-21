@@ -33,13 +33,13 @@ module pixie_dp_back_end
 );
 
 parameter  pixels_per_line    = 112;
-parameter  active_h_pixels    = 64;
+parameter  active_h_pixels    = 64;  
 parameter  hsync_start_pixel  = 82;  // two cycles later to account for pipeline delay
 parameter  hsync_width_pixels = 12;
 
 parameter  lines_per_frame    = 262;
-parameter  active_v_lines     = 128;
-parameter  vsync_start_line   = 182;
+parameter  active_v_lines     = 32;   
+parameter  vsync_start_line   = 96;
 parameter  vsync_height_lines = 16;
 
 reg        load_pixel_shift_reg;
@@ -62,8 +62,8 @@ wire       active_video;
 assign VSync    = vsync;
 assign HSync    = hsync;
 assign video_de = active_video;
-assign VBlank   = horizontal_counter > 'd111;
-assign HBlank   = vertical_counter   > 'd261;
+assign VBlank   = (vertical_counter < 64 && vertical_counter > 96);    // check EFx
+assign HBlank   = (horizontal_counter < 18 && horizontal_counter > 82);
 
 assign fb_addr[9:3] = vertical_counter[6:0];
 assign fb_addr[2:0] = horizontal_counter[5:3];
@@ -119,7 +119,7 @@ always @(posedge clk) begin
     else
         pixel_shift_reg <= {pixel_shift_reg[6:0], 1'b0};
 
-    video <= pixel_shift_reg[7];   
+    video <= active_video & pixel_shift_reg[7];   
 end
 
 endmodule

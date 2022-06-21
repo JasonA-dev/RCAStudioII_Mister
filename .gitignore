@@ -43,8 +43,4 @@ verilator/x64/Debug/
 verilator/.vs/sim/v17/Browse.VC.db
 rom/spacewar.bin
 verilator/spacewar.bin
-verilator/bin/TV Arcade I - Spacewar (1976)(RCA).bin
-verilator/bin/TV Arcade III - Tennis-Squash (1976)(RCA).bin
-verilator/bin/TV Arcade IV - Baseball (1976)(RCA).bin
-verilator/bin/TV Arcade Speedway - Tag (1976)(RCA).bin
-verilator/bin/TV Casino Games - Blackjack (1976)(RCA).bin
+verilator/bin/

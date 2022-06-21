@@ -52,29 +52,29 @@ wire   Locked;
 
 pixie_dp pixie_dp (
     // front end, CDP1802 bus clock domain
-    .clk(clk),
-    .reset(reset),  
-    .clk_enable(1'b1),
+    .clk(clk),            // I
+    .reset(reset),        // I
+    .clk_enable(1'b1),    // I      
 
-    .sc(SC),         
-    .disp_on(~io_n[0]),
-    .disp_off(io_n[0]),
-    .data(video_din),     
+    .sc(SC),              // I [1:0]
+    .disp_on(io_n[0]),    // I
+    .disp_off(~io_n[0]),   // I 
+    .data(video_din),     // I [7:0]
 
-    .dmao(DMAO),     
-    .INT(INT),     
-    .efx(EFx),
+    .dmao(DMAO),          // O
+    .INT(INT),            // O
+    .efx(EFx),            // O
 
     // back end, video clock domain
-    .video_clk(clk),
-    .csync(ce_pix),     
-    .video(video),
+    .video_clk(clk),      // I
+    .csync(ce_pix),       // O
+    .video(video),        // O
 
-    .VSync(VSync),
-    .HSync(HSync),    
-    .VBlank(VBlank),
-    .HBlank(HBlank),
-    .video_de(video_de)       
+    .VSync(VSync),        // O
+    .HSync(HSync),        // O
+    .VBlank(VBlank),      // O
+    .HBlank(HBlank),      // O
+    .video_de(video_de)   // O    
 );
 
 ////////////////// KEYPAD //////////////////////////////////////////////////////////////////
@@ -107,13 +107,6 @@ end
 
 ////////////////// CPU //////////////////////////////////////////////////////////////////
 
-reg [7:0] cpu_din;
-reg [7:0] cpu_dout;
-wire cpu_inp;
-wire cpu_out;
-
-wire Q;
-
 reg  [3:0] EF = 4'b1111;
 // 0111  EF4 Key pressed on keypad 2
 // 1011  EF3 Key pressed on keypad 1
@@ -122,7 +115,7 @@ reg  [3:0] EF = 4'b1111;
 always @(posedge clk) begin
     if ((btnKP1 != 'hff) && pressed)
       EF <= 4'b1011;
-    else if ((btnKP1 != 'hff) && pressed)
+    else if ((btnKP2 != 'hff) && pressed)
       EF <= 4'b0111;    
     else if (EFx)
       EF <= 4'b1110;
@@ -130,8 +123,13 @@ always @(posedge clk) begin
       EF <= 4'b1111;
 end
 
+reg [7:0] cpu_din;
+reg [7:0] cpu_dout;
+wire Q;
 wire unsupported;
 wire [2:0] io_n;
+wire io_inp;
+wire io_out;
 
 cdp1802 cdp1802 (
   .clock    (clk),
@@ -140,11 +138,11 @@ cdp1802 cdp1802 (
   .Q        (Q),        // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
   .EF       (EF),       // I 3:0 external flags EF1 to EF4
 
-  .io_din   (btnKP1),     
+  .io_din   (cpu_din),     
   .io_dout  (cpu_dout),    
-  .io_n     (io_n),         // O 2:0 IO control lines: N2,N1,N0
-  .io_inp   (cpu_inp),  // O IO input signal
-  .io_out   (cpu_out),  // O IO output signal
+  .io_n     (io_n),     // O 2:0 IO control lines: N2,N1,N0  (N0 used for display on/off)
+  .io_inp   (io_inp),   // O IO input signal
+  .io_out   (io_out),   // O IO output signal
 
   .unsupported(unsupported),
 
@@ -206,11 +204,11 @@ dpram #(.ADDR(12)) dpram (
 //                      so assume this is ROM for emulation purposes.
 //0E00-0FFF	Cartridge	  (MultiCart) Available for Cartridge games if required, probably isn't.
 
-wire rom_cs   = ram_a ==? 16'b0000_xxxx_xxxx_xxxx;
-wire cart_cs  = ram_a ==? 16'b0000_01xx_xxxx_xxxx; 
-wire pram_cs  = ram_a ==? 16'b0000_1000_xxxx_xxxx; 
-wire vram_cs  = ram_a ==? 16'b0000_1001_xxxx_xxxx; 
-wire mcart_cs = ram_a ==? 16'b0000_101x_xxxx_xxxx; 
+wire rom_cs   = ram_a ==? 'h0000; // 16'b0000_xxxx_xxxx_xxxx;
+wire cart_cs  = ram_a ==? 'h0400; // 16'b0000_01xx_xxxx_xxxx; 
+wire pram_cs  = ram_a ==? 'h0800; // 16'b0000_1000_xxxx_xxxx; 
+wire vram_cs  = ram_a ==? 'h0900; // 16'b0000_1001_xxxx_xxxx; 
+wire mcart_cs = ram_a ==? 'h0a00; // 16'b0000_101x_xxxx_xxxx; 
 
 reg [7:0] ram_din;
 

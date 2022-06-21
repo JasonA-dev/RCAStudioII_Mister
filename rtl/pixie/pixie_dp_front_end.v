@@ -115,9 +115,11 @@ always @(posedge clk) begin
     dmao <= (enabled && v_active && horizontal_counter >= 1'd1 && horizontal_counter < 1'd9) ? 1'b1 : 1'b0;
     dma_xfer <= (enabled && sc_dma) ? 1'b1 : 1'b0;
 
-    mem_addr  <= addr_counter;
-    mem_data  <= data;
-    mem_wr_en <= dma_xfer;
+
 end
+
+assign mem_addr = addr_counter;
+assign mem_data = data;
+assign mem_wr_en = dma_xfer;
 
 endmodule

@@ -29,11 +29,13 @@ module pixie_dp_frame_buffer
     output reg [7:0] d_out_b
 );
 
-reg [7:0] ram[1023];
+reg [7:0] ram[511];
 
 always @(posedge clk_a) begin
-  if (en_a)
+  if (en_a) begin
+    //$display("addr_a %x: d_in_a %x", addr_a, d_in_a);
     ram[addr_a] <= d_in_a;
+  end
 end
 
 always @(posedge clk_b) begin
