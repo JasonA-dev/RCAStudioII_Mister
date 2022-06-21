@@ -168,7 +168,6 @@ wire   [7:0]  ram_q;  // RAM read data
 reg   [7:0]   ram_d;  // RAM write data
 
 wire  [7:0]   romDo_StudioII;
-wire  [7:0]   romDo_SingleCart;
 wire [11:0]   romA;
 
 rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
@@ -179,15 +178,19 @@ rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
 	.a          (romA[10:0]     )
 );
 
-/*
-rom #(.AW(11)) Rom_SingleCart
-(
-	.clock      (clk            ),
-	.ce         (1'b1           ),
-	.data_out   (romDo_SingleCart ),
-	.a          (romA[10:0]     )
-);
-*/
+////////////////// CART /////////////////////////////////////////////////////////////////
+
+reg [15:0] load_addr;
+
+always @(posedge clk) begin
+  if(ioctl_index == 0)
+    load_addr <= ioctl_addr; // bios rom
+  else begin
+    load_addr <= 16'h0400 + ioctl_addr; // single carts are loaded at 0x400
+  end
+end
+
+/////////////////////////////////////////////////////////////////////////////////////////
 
 dpram #(.ADDR(12)) dpram (
   .clk    (clk),
@@ -202,7 +205,7 @@ dpram #(.ADDR(12)) dpram (
 	.b_wr   (ioctl_wr),
 	.b_din  (ioctl_dout),
 	.b_dout (),
-	.b_addr (ioctl_addr)
+	.b_addr (load_addr)
 );
 
 ////////////////// DMA //////////////////////////////////////////////////////////////////
