@@ -32,7 +32,6 @@ module top(
    
    // Core inputs/outputs
    wire [7:0] audio;
-   //wire [8:0] rgb;
    wire [3:0] led/*verilator public_flat*/;
 
    wire VSync, HSync;

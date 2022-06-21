@@ -67,7 +67,7 @@ pixie_dp pixie_dp (
 
     // back end, video clock domain
     .video_clk(clk),
-    .csync(ce_pix),     
+    .csync(),     
     .video(video),
 
     .VSync(VSync),
@@ -90,21 +90,19 @@ always @(posedge clk) begin
 
 	if(old_state != ps2_key[10]) begin
 		case(code)
-			'h16: btnKP1  <= 'd1; // Keypad1 1
-			'h1E: btnKP1  <= 'd2; // Keypad1 2
-      'h26: btnKP1  <= 'd3; // Keypad1 3
-      'h25: btnKP1  <= 'd4; // Keypad1 4
-      'h2E: btnKP1  <= 'd5; // Keypad1 5
-      'h36: btnKP1  <= 'd6; // Keypad1 6
-      'h3D: btnKP1  <= 'd7; // Keypad1 7
-      'h3E: btnKP1  <= 'd8; // Keypad1 8
-      'h46: btnKP1  <= 'd9; // Keypad1 9
-      'h45: btnKP1  <= 'd0; // Keypad1 0
+			'h16: btnKP1  <= 'd1; // 12'b000000000010; // Keypad1 1
+			'h1E: btnKP1  <= 'd2; // 12'b000000000100; // Keypad1 2
+      'h26: btnKP1  <= 'd3; // 12'b000000001000; // Keypad1 3
+      'h25: btnKP1  <= 'd4; // 12'b000000010000; // Keypad1 4
+      'h2E: btnKP1  <= 'd5; // 12'b000000100000; // Keypad1 5
+      'h36: btnKP1  <= 'd6; // 12'b000001000000; // Keypad1 6
+      'h3D: btnKP1  <= 'd7; // 12'b000010000000; // Keypad1 7
+      'h3E: btnKP1  <= 'd8; // 12'b000100000000; // Keypad1 8
+      'h46: btnKP1  <= 'd9; // 12'b001000000000; // Keypad1 9
+      'h45: btnKP1  <= 'd0; // 12'b000000000001; // Keypad1 0
       default: btnKP1 <= 'hff; // Keypad1
 		endcase
-    //$display("code %x btnKP1 %x", code, btnKP1);
 	end
-
 end
 
 ////////////////// CPU //////////////////////////////////////////////////////////////////
@@ -124,7 +122,7 @@ reg  [3:0] EF = 4'b1111;
 always @(posedge clk) begin
     if ((btnKP1 != 'hff) && pressed)
       EF <= 4'b1011;
-    else if ((btnKP2 != 'hff) && pressed)
+    else if ((btnKP1 != 'hff) && pressed)
       EF <= 4'b0111;    
     else if (EFx)
       EF <= 4'b1110;
@@ -165,7 +163,7 @@ wire          ram_rd; // RAM read enable
 wire          ram_wr; // RAM write enable
 wire  [15:0]  ram_a;  // RAM address
 wire   [7:0]  ram_q;  // RAM read data
-reg   [7:0]   ram_d;  // RAM write data
+reg    [7:0]  ram_d;  // RAM write data
 
 wire  [7:0]   romDo_StudioII;
 wire [11:0]   romA;
@@ -177,20 +175,6 @@ rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
 	.data_out   (romDo_StudioII ),
 	.a          (romA[10:0]     )
 );
-
-////////////////// CART /////////////////////////////////////////////////////////////////
-
-reg [15:0] load_addr;
-
-always @(posedge clk) begin
-  if(ioctl_index == 0)
-    load_addr <= ioctl_addr; // bios rom
-  else begin
-    load_addr <= 16'h0400 + ioctl_addr; // single carts are loaded at 0x400
-  end
-end
-
-/////////////////////////////////////////////////////////////////////////////////////////
 
 dpram #(.ADDR(12)) dpram (
   .clk    (clk),
@@ -205,7 +189,7 @@ dpram #(.ADDR(12)) dpram (
 	.b_wr   (ioctl_wr),
 	.b_din  (ioctl_dout),
 	.b_dout (),
-	.b_addr (load_addr)
+	.b_addr ((ioctl_index==0) ? ioctl_addr : (16'h0400 + ioctl_addr))
 );
 
 ////////////////// DMA //////////////////////////////////////////////////////////////////
@@ -232,7 +216,7 @@ reg [7:0] ram_din;
 
 // ram writes
 always @(posedge clk) begin
-  
+
   if (ram_wr) begin
     if(vram_cs) begin  
       video_din <= ram_d;

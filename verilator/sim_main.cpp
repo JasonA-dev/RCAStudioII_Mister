@@ -70,8 +70,8 @@ const int input_pause = 11;
 
 // Video
 // -----
-#define VGA_WIDTH 262
-#define VGA_HEIGHT 112
+#define VGA_WIDTH 260
+#define VGA_HEIGHT 110
 #define VGA_ROTATE 0  // 90 degrees anti-clockwise
 #define VGA_SCALE_X vga_scale
 #define VGA_SCALE_Y vga_scale
@@ -248,7 +248,7 @@ int main(int argc, char** argv, char** env) {
 	// Setup video output
 	if (video.Initialise(windowTitle) == 1) { return 1; }
 
-	bus.QueueDownload("./studio2.rom", 0, true);
+	bus.QueueDownload("./boot.rom", 0, true);
 
 
 #ifdef WIN32
@@ -409,8 +409,10 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Begin("Pixie FE");
 		ImGui::Text("disp_on:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__disp_on);	
 		ImGui::Text("disp_off:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__disp_off);
+		ImGui::Text("sc:            0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__sc);		
 		ImGui::Text("data:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__data);
-		ImGui::Text("dmao:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__dmao);		
+		ImGui::Text("dmao:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__dmao);	
+		ImGui::Text("dma_xfer:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__dma_xfer);			
 		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__INT);	
 		ImGui::Text("efx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__efx);							
 		ImGui::Spacing();	

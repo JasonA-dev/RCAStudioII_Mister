@@ -7,9 +7,7 @@ verilator \
 --top-module top sim.v \
 ../rtl/rcastudioii.sv \
 ../rtl/cdp1802.v \
-../rtl/cdp1861.v \
 ../rtl/dpram.sv \
-../rtl/dma.v \
 ../rtl/rom.v \
 ../rtl/pixie/pixie_dp_back_end.v \
 ../rtl/pixie/pixie_dp_front_end.v \

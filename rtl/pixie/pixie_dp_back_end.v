@@ -63,7 +63,7 @@ assign VSync    = vsync;
 assign HSync    = hsync;
 assign video_de = active_video;
 assign VBlank   = horizontal_counter > 'd111;
-assign HBlank   = vertical_counter > 'd261;
+assign HBlank   = vertical_counter   > 'd261;
 
 assign fb_addr[9:3] = vertical_counter[6:0];
 assign fb_addr[2:0] = horizontal_counter[5:3];
@@ -75,14 +75,12 @@ reg [7:0] new_h;
 always @(posedge clk) begin
 
     if (horizontal_counter == (pixels_per_line-1'd1)) begin
-        //$display("horizontal_counter == (pixels_per_line-1'd1)");        
         new_h <= 1'd0;
     end
     else
         new_h <= horizontal_counter + 1'd1;
 
     horizontal_counter <= new_h;
-    //$display("horizontal_counter %x pixels_per_line %x", horizontal_counter, pixels_per_line);    
 
     fb_read_en           <= (new_h[2:0]==3'b000)    ? 1'b1 : 1'b0;
     load_pixel_shift_reg <= (new_h[2:0]==3'b001)    ? 1'b1 : 1'b0;
@@ -93,14 +91,11 @@ always @(posedge clk) begin
 
     hsync     <= ((new_h>=hsync_start_pixel) && (new_h<hsync_start_pixel+hsync_width_pixels)) ? 1'b1 : 1'b0;
     advance_v <= (new_h==(pixels_per_line-1'd1)) ? 1'b1 : 1'b0;
-
-    //$display("fb_read_en %x fb_addr[9:3] %x", fb_read_en, fb_addr[9:3]); 
 end
 
 //vertical_counter_p
 always @(posedge clk) begin
     if (advance_v) begin
-        //$display("advance_v");
       if (vertical_counter==(lines_per_frame-1))
         new_v <= 1'd0;
       else
@@ -119,14 +114,12 @@ assign active_video = active_h & active_v;
 //pixel_shifter_p
 always @(posedge clk) begin
 
-    if (load_pixel_shift_reg) begin
-        //$display("load_pixel_shift_reg, active_video %x fb_data %x", active_video, fb_data);        
+    if (load_pixel_shift_reg)
         pixel_shift_reg <= fb_data;
-    end
     else
         pixel_shift_reg <= {pixel_shift_reg[6:0], 1'b0};
 
-    video <= {active_video, pixel_shift_reg[7]};
+    video <= pixel_shift_reg[7];   
 end
 
 endmodule
