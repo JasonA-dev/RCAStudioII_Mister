@@ -67,7 +67,7 @@ pixie_dp pixie_dp (
 
     // back end, video clock domain
     .video_clk(clk),
-    .csync(),     
+    .csync(ce_pix),     
     .video(video),
 
     .VSync(VSync),

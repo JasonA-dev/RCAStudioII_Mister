@@ -70,9 +70,9 @@ const int input_pause = 11;
 
 // Video
 // -----
-#define VGA_WIDTH 260
-#define VGA_HEIGHT 110
-#define VGA_ROTATE 0  // 90 degrees anti-clockwise
+#define VGA_WIDTH 262
+#define VGA_HEIGHT 112
+#define VGA_ROTATE -1  // 90 degrees anti-clockwise
 #define VGA_SCALE_X vga_scale
 #define VGA_SCALE_Y vga_scale
 SimVideo video(VGA_WIDTH, VGA_HEIGHT, VGA_ROTATE);

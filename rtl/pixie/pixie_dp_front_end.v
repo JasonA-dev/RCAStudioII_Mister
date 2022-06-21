@@ -24,7 +24,7 @@ module pixie_dp_front_end
     input      [1:0] sc,
     input            disp_on,
     input            disp_off,
-    input  reg [7:0] data,
+    input      [7:0] data,
 
     output reg       dmao,
     output reg       INT,
