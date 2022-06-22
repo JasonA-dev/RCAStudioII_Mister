@@ -70,9 +70,9 @@ const int input_pause = 11;
 
 // Video
 // -----
-#define VGA_WIDTH 256
-#define VGA_HEIGHT 128
-#define VGA_ROTATE -1  // 90 degrees anti-clockwise
+#define VGA_WIDTH 262
+#define VGA_HEIGHT 262
+#define VGA_ROTATE 0  // 90 degrees anti-clockwise
 #define VGA_SCALE_X vga_scale
 #define VGA_SCALE_Y vga_scale
 SimVideo video(VGA_WIDTH, VGA_HEIGHT, VGA_ROTATE);
@@ -357,44 +357,16 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("ram_d:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_d);			
 		ImGui::Spacing();		
 		ImGui::End();
-/*
-		// Debug 1861
-		ImGui::Begin("CDP 1861");
-		ImGui::Text("Disp_On:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Disp_On);	
-		ImGui::Text("Disp_Off:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Disp_Off);
-		ImGui::Text("TPA:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__TPA);
-		ImGui::Text("TPB:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__TPB);		
-		ImGui::Text("SC:            0x%08X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__SC);	
-		ImGui::Text("DataIn:        0x%08X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__DataIn);							
-		ImGui::Spacing();	
-		ImGui::Text("Clear:         0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Clear);
-		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__INT);
-		ImGui::Text("DMAO:          0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__DMAO);
-		ImGui::Text("EFx:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__EFx);
-		ImGui::Spacing();
-		ImGui::Text("video:         0x%08X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__video);
-		ImGui::Text("CompSync:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__CompSync);
-		ImGui::Text("Locked:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__Locked);	
-		ImGui::Spacing();	
-		ImGui::Text("lineCounter:	0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__lineCounter);
-		ImGui::Text("MCycleCounter:	0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__MCycleCounter);
-		ImGui::Text("syncCounter:	0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__syncCounter);
-    	ImGui::Text("DisplayOn:		0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__DisplayOn);
-		ImGui::Text("VSync:			0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__VSync);
-		ImGui::Text("HSync:			0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__HSync);
-		ImGui::Text("VideoShiftReg:	0x%02X", top->top__DOT__rcastudio__DOT__cdp1861__DOT__VideoShiftReg);
-		ImGui::End();
-*/
 
 		// Debug Pixie DP
 		ImGui::Begin("Pixie DP");
 		ImGui::Text("disp_on:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__disp_on);	
 		ImGui::Text("disp_off:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__disp_off);
-		ImGui::Text("data:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__data);
+		ImGui::Text("data_in:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__data_in);
 		ImGui::Spacing();	
 		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__INT);
-		ImGui::Text("dmao:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__dmao);
-		ImGui::Text("efx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__efx);
+		ImGui::Text("DMAO:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__DMAO);
+		ImGui::Text("EFx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__EFx);
 		ImGui::Spacing();
 		ImGui::Text("csync:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__csync);
 		ImGui::Text("video:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__video);
@@ -410,12 +382,12 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Begin("Pixie FE");
 		ImGui::Text("disp_on:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__disp_on);	
 		ImGui::Text("disp_off:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__disp_off);
-		ImGui::Text("sc:            0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__sc);		
-		ImGui::Text("data:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__data);
-		ImGui::Text("dmao:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__dmao);	
-		ImGui::Text("dma_xfer:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__dma_xfer);			
+		ImGui::Text("SC:            0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__SC);		
+		ImGui::Text("data_in:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__data_in);
+		ImGui::Text("DMAO:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__DMAO);	
+		ImGui::Text("DMA_xfer:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__DMA_xfer);			
 		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__INT);	
-		ImGui::Text("efx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__efx);							
+		ImGui::Text("EFx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__EFx);							
 		ImGui::Spacing();	
 		ImGui::Text("mem_addr:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__mem_addr);
 		ImGui::Text("mem_data:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__mem_data);
@@ -429,6 +401,15 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("fb_data:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__fb_data);
 		ImGui::Text("csync:        0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__csync);		
 		ImGui::Text("video:        0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__video);	
+		ImGui::Spacing();	
+		ImGui::Text("load_pixel_shift_reg: %03d", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__load_pixel_shift_reg);	
+		ImGui::Text("new_h:                %03d", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__new_h);
+		ImGui::Text("new_v:                %03d", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__new_v);	
+		ImGui::Text("vertical_counter:     %03d", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__vertical_counter);
+		ImGui::Text("horizontal_counter:   %03d", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__horizontal_counter);
+		ImGui::Text("fb_read_en:           %03d", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__fb_read_en);
+		ImGui::Text("pixel_shift_reg:      %03d", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__pixel_shift_reg);	
+		ImGui::Text("pixels_per_line:      %03d", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__pixels_per_line);									
 		ImGui::End();
 
 		// Debug Pixie FB

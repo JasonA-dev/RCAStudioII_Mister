@@ -23,14 +23,14 @@ module pixie_dp
     input         reset,  
     input         clk_enable,
 
-    input   [1:0] sc,         
+    input   [1:0] SC,         
     input         disp_on,
     input         disp_off,
-    input   [7:0] data,     
+    input   [7:0] data_in,     
 
-    output        dmao,     
+    output        DMAO,     
     output        INT,     
-    output        efx,
+    output        EFx,
 
     // back end, video clock domain
     input         video_clk,
@@ -58,14 +58,14 @@ pixie_dp_front_end pixie_dp_front_end (
     .clk        (clk),          // I
     .clk_enable (clk_enable),   // I
     .reset      (reset),        // I
-    .sc         (sc),           // I [1:0]
+    .SC         (SC),           // I [1:0]
     .disp_on    (disp_on),      // I
     .disp_off   (disp_off),     // I
-    .data       (data),         // I [7:0]
+    .data_in    (data_in),      // I [7:0]
 
-    .dmao       (dmao),         // O
+    .DMAO       (DMAO),         // O
     .INT        (INT),          // O
-    .efx        (efx),          // O
+    .EFx        (EFx),          // O
 
     .mem_addr   (fb_a_addr),    // O [9:0]
     .mem_data   (fb_a_data),    // O [7:0]

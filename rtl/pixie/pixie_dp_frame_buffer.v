@@ -18,14 +18,14 @@
 
 module pixie_dp_frame_buffer 
 (
-    input clk_a,
-    input en_a,
-    input [9:0] addr_a,
-    input [7:0] d_in_a,
+    input            clk_a,
+    input            en_a,
+    input      [9:0] addr_a,
+    input      [7:0] d_in_a,
 
-    input clk_b,
-    input en_b,
-    input [9:0] addr_b,
+    input            clk_b,
+    input            en_b,
+    input      [9:0] addr_b,
     output reg [7:0] d_out_b
 );
 

@@ -56,14 +56,14 @@ pixie_dp pixie_dp (
     .reset(reset),        // I
     .clk_enable(1'b1),    // I      
 
-    .sc(SC),              // I [1:0]
+    .SC(SC),              // I [1:0]
     .disp_on(io_n[0]),    // I
-    .disp_off(~io_n[0]),   // I 
-    .data(video_din),     // I [7:0]
+    .disp_off(~io_n[0]),  // I 
+    .data_in(video_din),  // I [7:0]
 
-    .dmao(DMAO),          // O
+    .DMAO(DMAO),          // O
     .INT(INT),            // O
-    .efx(EFx),            // O
+    .EFx(EFx),            // O
 
     // back end, video clock domain
     .video_clk(clk),      // I
@@ -117,7 +117,7 @@ always @(posedge clk) begin
       EF <= 4'b1011;
     else if ((btnKP2 != 'hff) && pressed)
       EF <= 4'b0111;    
-    else if (EFx)
+    else if (~EFx)
       EF <= 4'b1110;
     else
       EF <= 4'b1111;
@@ -216,9 +216,9 @@ reg [7:0] ram_din;
 always @(posedge clk) begin
 
   if (ram_wr) begin
-    if(vram_cs) begin  
+    if(ram_a>'h08ff && ram_a<'h0a00) begin  
       video_din <= ram_d;
-      //$display("video_din %x addr %x", video_din, ram_a);
+      $display("video_din %x data %x addr %x", video_din, ram_d, ram_a);
     end
   end
 
