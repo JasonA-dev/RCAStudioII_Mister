@@ -70,8 +70,8 @@ const int input_pause = 11;
 
 // Video
 // -----
-#define VGA_WIDTH 262
-#define VGA_HEIGHT 262
+#define VGA_WIDTH 256
+#define VGA_HEIGHT 128
 #define VGA_ROTATE 0  // 90 degrees anti-clockwise
 #define VGA_SCALE_X vga_scale
 #define VGA_SCALE_Y vga_scale
@@ -360,6 +360,7 @@ int main(int argc, char** argv, char** env) {
 
 		// Debug Pixie DP
 		ImGui::Begin("Pixie DP");
+		ImGui::Text("clk_enable:    0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__clk_enable);		
 		ImGui::Text("disp_on:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__disp_on);	
 		ImGui::Text("disp_off:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__disp_off);
 		ImGui::Text("data_in:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__data_in);
@@ -380,6 +381,7 @@ int main(int argc, char** argv, char** env) {
 
 		// Debug Pixie FE
 		ImGui::Begin("Pixie FE");
+		ImGui::Text("enabled:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__enabled);			
 		ImGui::Text("disp_on:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__disp_on);	
 		ImGui::Text("disp_off:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__disp_off);
 		ImGui::Text("SC:            0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__SC);		
@@ -392,6 +394,11 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("mem_addr:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__mem_addr);
 		ImGui::Text("mem_data:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__mem_data);
 		ImGui::Text("mem_wr_en:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__mem_wr_en);
+		ImGui::Spacing();	
+		ImGui::Text("horizontal_end: 0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__horizontal_end);
+		ImGui::Text("vertical_end:   0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__vertical_end);
+		ImGui::Text("horizontal_counter: 0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__horizontal_counter);
+		ImGui::Text("vertical_counter:   0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__vertical_counter);
 		ImGui::End();
 
 		// Debug Pixie BE

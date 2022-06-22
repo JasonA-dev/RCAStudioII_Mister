@@ -76,7 +76,7 @@ reg [7:0] new_h;
 // horizontal_counter_p     
 always @(posedge clk) begin
 
-    if (horizontal_counter == (pixels_per_line-1'd1)) begin
+    if (horizontal_counter == (pixels_per_line-1)) begin
         new_h <= 1'd0;
     end
     else
@@ -126,8 +126,8 @@ always @(posedge clk) begin
     else
         pixel_shift_reg <= {pixel_shift_reg[6:0], 1'b0};
 
-    //video <= active_video & pixel_shift_reg[7];   
-    video <= pixel_shift_reg[7];       
+    video <= active_video & pixel_shift_reg[7];   
+    //video <= pixel_shift_reg[7];       
 end
 
 endmodule

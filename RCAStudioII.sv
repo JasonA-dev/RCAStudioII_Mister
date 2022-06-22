@@ -285,7 +285,7 @@ rcastudioii rcastudio
 	.ioctl_dout(ioctl_data),
 
 	.ps2_key(ps2_key),
-	//.ce_pix(ce_pix),
+	.ce_pix(ce_pix),
 
 	.HBlank(HBlank),
 	.HSync(HSync),

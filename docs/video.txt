@@ -1,10 +1,13 @@
 Video
 The RCA Studio II uses the CDP 1861 for video output. 
-The Studio II controls the CDP 1861 via OUT 1 to switch the display off, INP 1 to switch the display on and EF1 to indicate the display status.
+The Studio II controls the CDP 1861 via OUT 1 to switch the display off, INP 1 to switch the display on and EF1 to 
+indicate the display status.
 
-The Studio II firmware and games use the most common CDP 1861 resolution of 64 x 32 with interrupt routine entry point at @001C and display memory at @0900-@09FF.
+The Studio II firmware and games use the most common CDP 1861 resolution of 64 x 32 with interrupt routine entry point 
+at @001C and display memory at @0900-@09FF.
 
-The display status is an active low output signal occurring for a period of four horizontal cycles prior to the beginning and end of the 128 line display window. 
+The display status is an active low output signal occurring for a period of four horizontal cycles prior to the beginning 
+and end of the 128 line display window. 
 The signal is used by the firmware interrupt routine to indicate the last 'row' of the display area.
 
 https://archive.kontek.net/studio2.classicgaming.gamespy.com/techinfo.htm
@@ -16,4 +19,5 @@ The hardware is described in greater detail here.
 
 In theory, the RCA can support a resolution of 64 horizontal and up to 128 lines vertically. 
 In reality, however, the display is a memory mapped type between 900 and 9FF, 64 pixels by 32, 8 bytes per line. 
-This is what the code in the ROM supports. Theoretically, you could replace the Interrupt driver with a different one, but I doubt any cartridge did this.
+This is what the code in the ROM supports. Theoretically, you could replace the Interrupt driver with a different one, 
+but I doubt any cartridge did this.

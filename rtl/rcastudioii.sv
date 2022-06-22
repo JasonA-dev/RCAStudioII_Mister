@@ -28,7 +28,7 @@ module rcastudioii
 	input        [7:0] ioctl_dout,
 
   input       [10:0] ps2_key,
-	output reg         ce_pix,
+	input  reg         ce_pix,
 
 	output reg         HBlank,
 	output reg         HSync,
@@ -54,7 +54,7 @@ pixie_dp pixie_dp (
     // front end, CDP1802 bus clock domain
     .clk(clk),            // I
     .reset(reset),        // I
-    .clk_enable(1'b1),    // I      
+    .clk_enable(ce_pix),    // I      
 
     .SC(SC),              // I [1:0]
     .disp_on(io_n[0]),    // I
@@ -67,7 +67,7 @@ pixie_dp pixie_dp (
 
     // back end, video clock domain
     .video_clk(clk),      // I
-    .csync(ce_pix),       // O
+    .csync(),       // O
     .video(video),        // O
 
     .VSync(VSync),        // O
@@ -117,7 +117,7 @@ always @(posedge clk) begin
       EF <= 4'b1011;
     else if ((btnKP2 != 'hff) && pressed)
       EF <= 4'b0111;    
-    else if (~EFx)
+    else if (EFx)
       EF <= 4'b1110;
     else
       EF <= 4'b1111;
@@ -204,11 +204,11 @@ dpram #(.ADDR(12)) dpram (
 //                      so assume this is ROM for emulation purposes.
 //0E00-0FFF	Cartridge	  (MultiCart) Available for Cartridge games if required, probably isn't.
 
-wire rom_cs   = ram_a ==? 'h0000; // 16'b0000_xxxx_xxxx_xxxx;
-wire cart_cs  = ram_a ==? 'h0400; // 16'b0000_01xx_xxxx_xxxx; 
-wire pram_cs  = ram_a ==? 'h0800; // 16'b0000_1000_xxxx_xxxx; 
-wire vram_cs  = ram_a ==? 'h0900; // 16'b0000_1001_xxxx_xxxx; 
-wire mcart_cs = ram_a ==? 'h0a00; // 16'b0000_101x_xxxx_xxxx; 
+wire rom_cs   = ram_a>='h0000 && ram_a<'h0400 ? 1'b1 : 1'b0; // ram_a ==? 'h0000; // 16'b0000_xxxx_xxxx_xxxx;
+wire cart_cs  = ram_a>='h0400 && ram_a<'h0800 ? 1'b1 : 1'b0; // ram_a ==? 'h0400; // 16'b0000_01xx_xxxx_xxxx; 
+wire pram_cs  = ram_a>='h0800 && ram_a<'h0900 ? 1'b1 : 1'b0; // ram_a ==? 'h0800; // 16'b0000_1000_xxxx_xxxx; 
+wire vram_cs  = ram_a>='h0900 && ram_a<'h0a00 ? 1'b1 : 1'b0; // ram_a ==? 'h0900; // 16'b0000_1001_xxxx_xxxx; 
+wire mcart_cs = ram_a>='h0a00                 ? 1'b1 : 1'b0; // ram_a ==? 'h0a00; // 16'b0000_101x_xxxx_xxxx; 
 
 reg [7:0] ram_din;
 
@@ -216,9 +216,9 @@ reg [7:0] ram_din;
 always @(posedge clk) begin
 
   if (ram_wr) begin
-    if(ram_a>'h08ff && ram_a<'h0a00) begin  
+    if(vram_cs) begin  
       video_din <= ram_d;
-      $display("video_din %x data %x addr %x", video_din, ram_d, ram_a);
+      //$display("video_din %x ram_d %x ram_a %x", video_din, ram_d, ram_a);
     end
   end
 

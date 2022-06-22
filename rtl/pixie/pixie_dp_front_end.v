@@ -35,8 +35,8 @@ module pixie_dp_front_end
     output reg       mem_wr_en
 );
 
-parameter  bytes_per_line  = 2'd14;
-parameter  lines_per_frame = 3'd262;
+parameter  bytes_per_line  = 14;
+parameter  lines_per_frame = 262;
 
 reg        SC_fetch;
 reg        SC_execute;
@@ -80,40 +80,47 @@ end
 always @(posedge clk) begin
     if (clk_enable) begin
       if (horizontal_end) 
-        horizontal_counter <= 1'd0;
+        horizontal_counter <= 0;
       else
-        horizontal_counter <= horizontal_counter+1'd1;
+        horizontal_counter <= horizontal_counter+1;
     end
 
-    horizontal_end <= (horizontal_counter==(bytes_per_line-1'd1))  ? 1'b1 : 1'b0;
-    vertical_end   <= (vertical_counter  ==(lines_per_frame-1'd1)) ? 1'b1 : 1'b0;
+    horizontal_end <= horizontal_counter==bytes_per_line-1  ? 1'b1 : 1'b0;
+    vertical_end   <= vertical_counter  ==lines_per_frame-1 ? 1'b1 : 1'b0;
 end
 
 always @(posedge clk) begin
     if(clk_enable && horizontal_end) begin
-
       if (vertical_end)
-        vertical_counter <= 1'd0;
+        vertical_counter <= 0;
       else
-        vertical_counter <= vertical_counter + 1'd1;
+        vertical_counter <= vertical_counter + 1;
       
-      EFx       <= ((vertical_counter >= 2'd76  && vertical_counter < 2'd80) || (vertical_counter >= 3'd108 && vertical_counter < 3'd112)) ? 1'b0 : 1'b1;
-      INT       <= (enabled && vertical_counter >= 2'd78 && vertical_counter < 2'd80)  ? 1'b0 : 1'b1;
-      v_active  <= (enabled && vertical_counter >= 2'd108 && vertical_counter < 3'd112) ? 1'b1 : 1'b0;
-    end 
+      EFx       <= ((vertical_counter >= 76  && vertical_counter < 80) || (vertical_counter >= 108 && vertical_counter < 112)) ? 1'b0 : 1'b1;
+      //INT       <= (enabled && vertical_counter >= 78 && vertical_counter < 80)  ? 1'b0 : 1'b1;
+      v_active  <= (enabled && vertical_counter >= 108 && vertical_counter < 112) ? 1'b1 : 1'b0;
+
+      if((enabled && vertical_counter >= 78 && vertical_counter < 80)) begin
+        INT <= 1'b0;
+        $display("1_INT: %d vertical_counter %d enabled %d", INT, vertical_counter, enabled);
+      end
+      else begin
+        INT <= 1'b1;
+        $display("2_INT: %d vertical_counter %d enabled %d", INT, vertical_counter, enabled);        
+      end
+    end
 end
 
-always @(posedge clk) begin
+assign DMAO     = (enabled && v_active && horizontal_counter >= 1 && horizontal_counter < 9) ? 1'b0 : 1'b1;
+assign DMA_xfer = (enabled && SC_dma) ? 1'b1 : 1'b0;
 
+always @(posedge clk) begin
     if(clk_enable) begin
       if (reset || (horizontal_end && vertical_end))
         addr_counter <= 1'd0;
       else if (DMA_xfer)
         addr_counter <= addr_counter + 1'd1;
     end 
-
-    DMAO     <= (enabled && v_active && horizontal_counter >= 1'd1 && horizontal_counter < 1'd9) ? 1'b0 : 1'b1;
-    DMA_xfer <= (enabled && SC_dma) ? 1'b1 : 1'b0;
 end
 
 assign mem_addr  = addr_counter;
