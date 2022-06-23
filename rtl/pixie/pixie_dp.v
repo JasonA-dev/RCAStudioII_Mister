@@ -88,6 +88,8 @@ pixie_dp_frame_buffer pixie_dp_frame_buffer (
 
 pixie_dp_back_end pixie_dp_back_end (
     .clk        (video_clk),    // I
+    .reset      (reset),        // I
+
     .fb_read_en (fb_b_en),      // O
     .fb_addr    (fb_b_addr),    // O [9:0]
     .fb_data    (fb_b_data),    // I [7:0]

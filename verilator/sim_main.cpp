@@ -70,8 +70,8 @@ const int input_pause = 11;
 
 // Video
 // -----
-#define VGA_WIDTH 256
-#define VGA_HEIGHT 128
+#define VGA_WIDTH 64
+#define VGA_HEIGHT 32
 #define VGA_ROTATE 0  // 90 degrees anti-clockwise
 #define VGA_SCALE_X vga_scale
 #define VGA_SCALE_Y vga_scale

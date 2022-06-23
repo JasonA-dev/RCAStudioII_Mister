@@ -102,11 +102,11 @@ always @(posedge clk) begin
 
       if((enabled && vertical_counter >= 78 && vertical_counter < 80)) begin
         INT <= 1'b0;
-        $display("1_INT: %d vertical_counter %d enabled %d", INT, vertical_counter, enabled);
+        //$display("1_INT: %d vertical_counter %d enabled %d", INT, vertical_counter, enabled);
       end
       else begin
         INT <= 1'b1;
-        $display("2_INT: %d vertical_counter %d enabled %d", INT, vertical_counter, enabled);        
+        //$display("2_INT: %d vertical_counter %d enabled %d", INT, vertical_counter, enabled);        
       end
     end
 end

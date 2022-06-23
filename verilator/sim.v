@@ -78,6 +78,8 @@ rcastudioii rcastudio
 	.VBlank(VBlank),
 	.VSync(VSync),
 
+   .video_de(),  
+
 	.video(video)
 );
 

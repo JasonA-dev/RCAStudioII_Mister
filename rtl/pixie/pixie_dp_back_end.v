@@ -19,6 +19,8 @@
 module pixie_dp_back_end
 (
     input              clk,
+    input              reset, 
+
     output  reg        fb_read_en,
     output       [9:0] fb_addr,
     input        [7:0] fb_data,
@@ -32,15 +34,15 @@ module pixie_dp_back_end
     output             video_de      
 );
 
-parameter  pixels_per_line    = 112; // (14bytes x 8bits)
-parameter  active_h_pixels    = 64;  // (studio2 has 32 active pixels per visible horizontal row)  64
+parameter  pixels_per_line    = 112; // (14bytes x 8bits, constant for all 1861's)
+parameter  active_h_pixels    = 64;  // (studio2 has 64 active pixels per visible horizontal row) 
 parameter  hsync_start_pixel  = 02;  // two cycles later to account for pipeline delay
 parameter  hsync_width_pixels = 12;  
 
 parameter  lines_per_frame    = 262; // (constant for all 1861's) 
-parameter  active_v_lines     = 32;  // (studio2 has 24 active lines per visible screen area) 32
-parameter  vsync_start_line   = 0;
-parameter  vsync_height_lines = 16;  
+parameter  active_v_lines     = 32;  // (studio2 has 32 active lines per visible screen area)
+parameter  vsync_start_line   = 0;  
+parameter  vsync_height_lines = 16;  // (constant for all 1861's)
 
 reg        load_pixel_shift_reg;
 reg  [7:0] pixel_shift_reg;
@@ -64,7 +66,7 @@ wire       active_video;
 assign VSync    = vsync;
 assign HSync    = hsync;
 assign video_de = active_video;
-assign VBlank   = (vertical_counter   < 64 && vertical_counter   > 96);    // check EFx
+assign VBlank   = (vertical_counter   < 64 && vertical_counter   > 96);    
 assign HBlank   = (horizontal_counter < 18 && horizontal_counter > 82);
 
 assign fb_addr[9:3] = vertical_counter[6:0];
@@ -107,27 +109,29 @@ always @(posedge clk) begin
         new_v <= vertical_counter + 1'd1;
 
       vertical_counter <= new_v;
+
       active_v <= (new_v<active_v_lines) ? 1'b1 : 1'b0;
       vsync <= ((new_v>=vsync_start_line) && (new_v<vsync_start_line+vsync_height_lines)) ? 1'b1 : 1'b0;
     
     end
 end
 
-assign csync = hsync ^ vsync;
-assign active_video = active_h & active_v;
+assign csync = ~(hsync ^ vsync);
+assign active_video = active_h && active_v;
 
 //pixel_shifter_p
 always @(posedge clk) begin
 
     if (load_pixel_shift_reg==1'b1) begin
         pixel_shift_reg <= fb_data;
-        //$display("fb_data: %02x", fb_data);
+        $display("fb_data: %02x fb_addr: %02x", fb_data, fb_addr);
     end
-    else
+    else if (reset)
+        pixel_shift_reg <= 0;
+    else begin
         pixel_shift_reg <= {pixel_shift_reg[6:0], 1'b0};
-
-    video <= active_video & pixel_shift_reg[7];   
-    //video <= pixel_shift_reg[7];       
+        video <= pixel_shift_reg[7];   
+    end
 end
 
 endmodule

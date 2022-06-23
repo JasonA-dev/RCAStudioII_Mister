@@ -59,7 +59,7 @@ pixie_dp pixie_dp (
     .SC(SC),              // I [1:0]
     .disp_on(io_n[0]),    // I
     .disp_off(~io_n[0]),  // I 
-    .data_in(video_din),  // I [7:0]
+    .data_in((vram_cs && ram_wr) ? ram_din : 0),  // I [7:0]
 
     .DMAO(DMAO),          // O
     .INT(INT),            // O
@@ -67,15 +67,17 @@ pixie_dp pixie_dp (
 
     // back end, video clock domain
     .video_clk(clk),      // I
-    .csync(),       // O
+    .csync(),             // O
     .video(video),        // O
 
     .VSync(VSync),        // O
     .HSync(HSync),        // O
     .VBlank(VBlank),      // O
     .HBlank(HBlank),      // O
-    .video_de(video_de)   // O    
+    .video_de()   // O    
 );
+
+assign video_de = ~(HBlank | VBlank);
 
 ////////////////// KEYPAD //////////////////////////////////////////////////////////////////
 
@@ -117,7 +119,7 @@ always @(posedge clk) begin
       EF <= 4'b1011;
     else if ((btnKP2 != 'hff) && pressed)
       EF <= 4'b0111;    
-    else if (EFx)
+    else if (~EFx)
       EF <= 4'b1110;
     else
       EF <= 4'b1111;
@@ -212,18 +214,11 @@ wire mcart_cs = ram_a>='h0a00                 ? 1'b1 : 1'b0; // ram_a ==? 'h0a00
 
 reg [7:0] ram_din;
 
-// ram writes
 always @(posedge clk) begin
-
-  if (ram_wr) begin
-    if(vram_cs) begin  
-      video_din <= ram_d;
-      //$display("video_din %x ram_d %x ram_a %x", video_din, ram_d, ram_a);
-    end
-  end
-
-  ram_din <= ram_d;    
+  ram_din <= ram_d;
 end
+
+//assign ram_din = ram_d;
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)
 // 0x40e = game 1
