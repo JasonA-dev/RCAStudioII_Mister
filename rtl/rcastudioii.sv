@@ -54,12 +54,12 @@ pixie_dp pixie_dp (
     // front end, CDP1802 bus clock domain
     .clk(clk),            // I
     .reset(reset),        // I
-    .clk_enable(ce_pix),    // I      
+    .clk_enable(ce_pix),  // I      
 
     .SC(SC),              // I [1:0]
     .disp_on(io_n[0]),    // I
     .disp_off(~io_n[0]),  // I 
-    .data_in((vram_cs && ram_wr) ? ram_din : 0),  // I [7:0]
+    .data_in(video_din),  // I [7:0]    <-- this needs investigating for alternatives
 
     .DMAO(DMAO),          // O
     .INT(INT),            // O
@@ -74,8 +74,38 @@ pixie_dp pixie_dp (
     .HSync(HSync),        // O
     .VBlank(VBlank),      // O
     .HBlank(HBlank),      // O
-    .video_de()   // O    
+    .video_de()           // O    
 );
+
+/*
+cdp1861 cdp1861 (
+    .clock(clk),
+    .reset(reset),
+
+    .Disp_On(io_n[0]),
+    .Disp_Off(~io_n[0]),
+    .TPA(1'b1),
+    .TPB(1'b1),
+    .SC(SC),
+    .DataIn(video_din),
+
+    .Clear(),
+    .INT(INT),
+    .DMAO(DMAO),
+    .EFx(EFx),
+
+    .video(video),
+    .CompSync(),
+    .Locked(),
+
+    .VSync(VSync),
+    .HSync(HSync),
+    .VBlank(VBlank),
+    .HBlank(HBlank),
+
+    .video_de()     
+);
+*/
 
 assign video_de = ~(HBlank | VBlank);
 
@@ -133,6 +163,10 @@ wire [2:0] io_n;
 wire io_inp;
 wire io_out;
 
+reg [15:0] cpu_ram_addr;
+reg  [7:0] cpu_ram_din;
+reg  [7:0] cpu_ram_dout;
+
 cdp1802 cdp1802 (
   .clock    (clk),
   .resetq   (~reset),
@@ -148,22 +182,22 @@ cdp1802 cdp1802 (
 
   .unsupported(unsupported),
 
-  .ram_rd (ram_rd),     
-  .ram_wr (ram_wr),     
-  .ram_a  (ram_a),      
-  .ram_q  (ram_q),      
-  .ram_d  (ram_d)      
+  .ram_rd (ram_rd),       // O
+  .ram_wr (ram_wr),       // O
+  .ram_a  (cpu_ram_addr), // O
+  .ram_q  (cpu_ram_din),  // I
+  .ram_d  (cpu_ram_dout)  // O
 );
 
 ////////////////// RAM //////////////////////////////////////////////////////////////////
 
 reg ram_cs;
 
-wire          ram_rd; // RAM read enable
-wire          ram_wr; // RAM write enable
-wire  [15:0]  ram_a;  // RAM address
-wire   [7:0]  ram_q;  // RAM read data
-reg    [7:0]  ram_d;  // RAM write data
+reg          ram_rd; // RAM read enable
+reg          ram_wr; // RAM write enable
+reg  [15:0]  ram_a;  // RAM address
+reg   [7:0]  ram_q;  // RAM read data
+reg   [7:0]  ram_d;  // RAM write data
 
 wire  [7:0]   romDo_StudioII;
 wire [11:0]   romA;
@@ -182,7 +216,7 @@ dpram #(.ADDR(12)) dpram (
 	.a_ce   (ram_rd),
 	.a_wr   (ram_wr),
 	.a_din  (ram_din),
-	.a_dout (ram_q),
+	.a_dout (ram_dout),
 	.a_addr (ram_a),
 
 	.b_ce   (ioctl_download),
@@ -206,19 +240,30 @@ dpram #(.ADDR(12)) dpram (
 //                      so assume this is ROM for emulation purposes.
 //0E00-0FFF	Cartridge	  (MultiCart) Available for Cartridge games if required, probably isn't.
 
-wire rom_cs   = ram_a>='h0000 && ram_a<'h0400 ? 1'b1 : 1'b0; // ram_a ==? 'h0000; // 16'b0000_xxxx_xxxx_xxxx;
-wire cart_cs  = ram_a>='h0400 && ram_a<'h0800 ? 1'b1 : 1'b0; // ram_a ==? 'h0400; // 16'b0000_01xx_xxxx_xxxx; 
-wire pram_cs  = ram_a>='h0800 && ram_a<'h0900 ? 1'b1 : 1'b0; // ram_a ==? 'h0800; // 16'b0000_1000_xxxx_xxxx; 
-wire vram_cs  = ram_a>='h0900 && ram_a<'h0a00 ? 1'b1 : 1'b0; // ram_a ==? 'h0900; // 16'b0000_1001_xxxx_xxxx; 
-wire mcart_cs = ram_a>='h0a00                 ? 1'b1 : 1'b0; // ram_a ==? 'h0a00; // 16'b0000_101x_xxxx_xxxx; 
+wire rom_cs   = ram_a ==? 16'b0000_00xx_xxxx_xxxx;
+wire cart_cs  = ram_a ==? 16'b0000_01xx_xxxx_xxxx; 
+wire pram_cs  = ram_a ==? 16'b0000_1000_xxxx_xxxx; 
+wire vram_cs  = ram_a ==? 16'b0000_1001_xxxx_xxxx; 
+wire mcart_cs = ram_a ==? 16'b0000_101x_xxxx_xxxx; 
 
 reg [7:0] ram_din;
 
 always @(posedge clk) begin
-  ram_din <= ram_d;
-end
+  ram_din <= cpu_ram_dout;  
 
-//assign ram_din = ram_d;
+  if (vram_cs && ram_wr) begin
+    //ram_rd <= fb_read_en;
+    //ram_a <= fb_addr;
+    //video_din <= fb_data;   
+    video_din <= cpu_ram_dout;
+    //$display("ram_d %x ram_a %x video_din %x", ram_d, ram_a, video_din);
+  end 
+
+  cpu_ram_din <= ram_dout;
+
+  ram_a <= cpu_ram_addr;
+
+end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)
 // 0x40e = game 1

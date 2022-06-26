@@ -56,9 +56,11 @@ V_SRC = \
 	sim.v \
 	$(RTL)/rcastudioii.sv \
 	$(RTL)/cdp1802.v \
+	$(RTL)/cdp1861.v \	
 	$(RTL)/dpram.sv \	
 	$(RTL)/rom.v \
-	$(RTL)/pixie/pixie_dp_back_end.v \
+	$(RTL)/pixie/pixie_dp.v \
+	$(RTL)/pixie/pixie_dp_back_end.v \	
 	$(RTL)/pixie/pixie_dp_front_end.v \
 	$(RTL)/pixie/pixie_dp_frame_buffer.v \
 	$(RTL)/pixie/pixie_dp.v

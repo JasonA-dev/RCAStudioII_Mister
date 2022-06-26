@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "a2a39241-8334-40a2-8d63-53a6caeaea05": {
+      "ProjectGuid": "a2a39241-8334-40a2-8d63-53a6caeaea05",
+      "DisplayName": "sim",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}

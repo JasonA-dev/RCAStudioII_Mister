@@ -9,6 +9,8 @@ verilator \
 ../rtl/cdp1802.v \
 ../rtl/dpram.sv \
 ../rtl/rom.v \
+../rtl/cdp1861.v \
+../rtl/pixie/pixie_dp.v \
 ../rtl/pixie/pixie_dp_back_end.v \
 ../rtl/pixie/pixie_dp_front_end.v \
 ../rtl/pixie/pixie_dp_frame_buffer.v \

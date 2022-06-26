@@ -70,8 +70,8 @@ const int input_pause = 11;
 
 // Video
 // -----
-#define VGA_WIDTH 64
-#define VGA_HEIGHT 32
+#define VGA_WIDTH 256
+#define VGA_HEIGHT 128
 #define VGA_ROTATE 0  // 90 degrees anti-clockwise
 #define VGA_SCALE_X vga_scale
 #define VGA_SCALE_Y vga_scale
@@ -318,9 +318,9 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Begin("DPRAM");
 		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__dpram__DOT__mem, 4096, 0);
 		ImGui::End();		
-		ImGui::Begin("Pixie FB");
-		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_frame_buffer__DOT__ram, 512, 0);		
-		ImGui::End();
+		//ImGui::Begin("Pixie FB");
+		//mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_frame_buffer__DOT__ram, 4096, 0);		
+		//ImGui::End();
 
 		// Debug 1802 cpu
 		ImGui::Begin("CDP 1802 Registers");
@@ -378,7 +378,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("HBlank:        0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__HBlank);
 		ImGui::Text("video_de:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__video_de);								
 		ImGui::End();
-
+/*
 		// Debug Pixie FE
 		ImGui::Begin("Pixie FE");
 		ImGui::Text("enabled:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__enabled);			
@@ -400,7 +400,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("horizontal_counter: 0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__horizontal_counter);
 		ImGui::Text("vertical_counter:   0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_front_end__DOT__vertical_counter);
 		ImGui::End();
-
+*/
 		// Debug Pixie BE
 		ImGui::Begin("Pixie BE");
 		ImGui::Text("fb_read_en:   0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__fb_read_en);	
@@ -418,7 +418,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("pixel_shift_reg:      %03d", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__pixel_shift_reg);	
 		ImGui::Text("pixels_per_line:      %03d", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_back_end__DOT__pixels_per_line);									
 		ImGui::End();
-
+/*
 		// Debug Pixie FB
 		ImGui::Begin("Pixie FB");
 		ImGui::Text("en_a:   	0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_frame_buffer__DOT__en_a);	
@@ -429,7 +429,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("addr_b:    0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_frame_buffer__DOT__addr_b);	
 		ImGui::Text("d_out_b:   0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_frame_buffer__DOT__d_out_b);		
 		ImGui::End();
-
+*/
 		// Debug ioctl
 		ImGui::Begin("ioctl");
 		ImGui::Text("ioctl_download: 0x%02X", top->top__DOT__rcastudio__DOT__ioctl_download);	

@@ -84,7 +84,6 @@ always @(posedge clk) begin
       else
         horizontal_counter <= horizontal_counter+1;
     end
-
     horizontal_end <= horizontal_counter==bytes_per_line-1  ? 1'b1 : 1'b0;
     vertical_end   <= vertical_counter  ==lines_per_frame-1 ? 1'b1 : 1'b0;
 end
@@ -96,18 +95,9 @@ always @(posedge clk) begin
       else
         vertical_counter <= vertical_counter + 1;
       
-      EFx       <= ((vertical_counter >= 76  && vertical_counter < 80) || (vertical_counter >= 108 && vertical_counter < 112)) ? 1'b0 : 1'b1;
-      //INT       <= (enabled && vertical_counter >= 78 && vertical_counter < 80)  ? 1'b0 : 1'b1;
+      EFx       <= ((vertical_counter >=60 && vertical_counter < 65) || (vertical_counter >= 188 && vertical_counter < 193)) ? 1'b0 : 1'b1;
+      INT       <= (enabled && vertical_counter >= 260 && vertical_counter < 262)  ? 1'b1 : 1'b0;
       v_active  <= (enabled && vertical_counter >= 108 && vertical_counter < 112) ? 1'b1 : 1'b0;
-
-      if((enabled && vertical_counter >= 78 && vertical_counter < 80)) begin
-        INT <= 1'b0;
-        //$display("1_INT: %d vertical_counter %d enabled %d", INT, vertical_counter, enabled);
-      end
-      else begin
-        INT <= 1'b1;
-        //$display("2_INT: %d vertical_counter %d enabled %d", INT, vertical_counter, enabled);        
-      end
     end
 end
 

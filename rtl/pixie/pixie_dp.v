@@ -26,7 +26,10 @@ module pixie_dp
     input   [1:0] SC,         
     input         disp_on,
     input         disp_off,
+
     input   [7:0] data_in,     
+    output reg [9:0] data_addr,
+    output        data_rd,
 
     output        DMAO,     
     output        INT,     
@@ -54,6 +57,7 @@ wire   [9:0] fb_b_addr;
 wire   [7:0] fb_b_data;
 wire         fb_b_en;
 
+
 pixie_dp_front_end pixie_dp_front_end (
     .clk        (clk),          // I
     .clk_enable (clk_enable),   // I
@@ -73,6 +77,8 @@ pixie_dp_front_end pixie_dp_front_end (
 );
 
 assign fb_a_en2 = (clk_enable & fb_a_en);
+
+
 
 pixie_dp_frame_buffer pixie_dp_frame_buffer (
     .clk_a    (clk),            // I
@@ -103,5 +109,6 @@ pixie_dp_back_end pixie_dp_back_end (
     .HBlank     (HBlank),       // O
     .video_de   (video_de)      // O
 );
+
 
 endmodule

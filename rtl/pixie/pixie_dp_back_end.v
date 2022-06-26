@@ -36,23 +36,19 @@ module pixie_dp_back_end
 
 parameter  pixels_per_line    = 112; // (14bytes x 8bits, constant for all 1861's)
 parameter  active_h_pixels    = 64;  // (studio2 has 64 active pixels per visible horizontal row) 
-parameter  hsync_start_pixel  = 02;  // two cycles later to account for pipeline delay
-parameter  hsync_width_pixels = 12;  
+parameter  hsync_start_pixel  = 111; // two cycles later to account for pipeline delay
+parameter  hsync_width_pixels = 1;  
 
 parameter  lines_per_frame    = 262; // (constant for all 1861's) 
-parameter  active_v_lines     = 32;  // (studio2 has 32 active lines per visible screen area)
-parameter  vsync_start_line   = 0;  
-parameter  vsync_height_lines = 16;  // (constant for all 1861's)
+parameter  active_v_lines     = 128; // (NTSC is 128)
+parameter  vsync_start_line   = 261;  
+parameter  vsync_height_lines = 1;   // (constant for all 1861's)
 
 reg        load_pixel_shift_reg;
 reg  [7:0] pixel_shift_reg;
   
 reg  [7:0] horizontal_counter;
 reg        hsync;
-reg        active_h_adv4;  // pipeline delay
-reg        active_h_adv3;  // pipeline delay
-reg        active_h_adv2;  // pipeline delay
-reg        active_h_adv1;  // pipeline delay
 reg        active_h;
 reg        advance_v;
     
@@ -62,12 +58,11 @@ reg        active_v;
   
 wire       active_video;
 
-
 assign VSync    = vsync;
 assign HSync    = hsync;
 assign video_de = active_video;
-assign VBlank   = (vertical_counter   < 64 && vertical_counter   > 96);    
-assign HBlank   = (horizontal_counter < 18 && horizontal_counter > 82);
+assign VBlank   = (vertical_counter   < 64 || vertical_counter   > 192);    
+assign HBlank   = (horizontal_counter < 18 || horizontal_counter > 82);
 
 assign fb_addr[9:3] = vertical_counter[6:0];
 assign fb_addr[2:0] = horizontal_counter[5:3];
@@ -88,12 +83,7 @@ always @(posedge clk) begin
 
     fb_read_en           <= (new_h[2:0]==3'b000)    ? 1'b1 : 1'b0;
     load_pixel_shift_reg <= (new_h[2:0]==3'b001)    ? 1'b1 : 1'b0;
-    active_h_adv4        <= (new_h<active_h_pixels) ? 1'b1 : 1'b0;
-
-    active_h_adv3 <= active_h_adv4;
-    active_h_adv2 <= active_h_adv3;
-    active_h_adv1 <= active_h_adv2;
-    active_h      <= active_h_adv1;
+    active_h        <= (new_h<active_h_pixels) ? 1'b1 : 1'b0;
 
     hsync     <= ((new_h>=hsync_start_pixel) && (new_h<hsync_start_pixel+hsync_width_pixels)) ? 1'b1 : 1'b0;
     advance_v <= (new_h==(pixels_per_line-1'd1)) ? 1'b1 : 1'b0;
@@ -124,14 +114,15 @@ always @(posedge clk) begin
 
     if (load_pixel_shift_reg==1'b1) begin
         pixel_shift_reg <= fb_data;
-        $display("fb_data: %02x fb_addr: %02x", fb_data, fb_addr);
+       // $display("fb_data: %02x fb_addr: %02x, vertical_counter[6:0] %02x horizontal_counter[5:3] %02x", fb_data, fb_addr, vertical_counter[6:0], horizontal_counter[5:3]);
     end
     else if (reset)
         pixel_shift_reg <= 0;
-    else begin
-        pixel_shift_reg <= {pixel_shift_reg[6:0], 1'b0};
+    else 
+        pixel_shift_reg <= {pixel_shift_reg[6:0], 1'b0};        
+    
+    if(active_video)
         video <= pixel_shift_reg[7];   
-    end
 end
 
 endmodule

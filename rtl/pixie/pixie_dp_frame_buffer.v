@@ -29,7 +29,7 @@ module pixie_dp_frame_buffer
     output reg [7:0] d_out_b
 );
 
-reg [7:0] ram[511];
+reg [7:0] ram[4096];
 
 always @(posedge clk_a) begin
   if (en_a) begin

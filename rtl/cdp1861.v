@@ -52,8 +52,10 @@ reg [7:0] syncCounter;   // max 'd12;
     
 reg DisplayOn;
 
-assign VBlank = lineCounter > 79;
-assign HBlank = MCycleCounter > 28;
+//assign VBlank = lineCounter > 79;
+//assign HBlank = MCycleCounter > 28;
+assign VBlank   = (lineCounter   < 64 && lineCounter   > 96);    
+assign HBlank   = (MCycleCounter >= 'd3 && MCycleCounter <= 'd19);
 
 reg [7:0] VideoShiftReg;
 
@@ -82,9 +84,8 @@ always @(posedge clock) begin
   if (syncCounter == 'd12)
     syncCounter <= 'd0;
 
-  if (lineCounter == 'd263) begin
+  if (lineCounter == 'd263) 
     lineCounter <= 'd0;
-  end
 
   //Display On flag for controlling the DMA and Interrupt output
   if(Disp_On) 
@@ -115,7 +116,7 @@ always @(negedge clock) begin
   CompSync <= ~(HSync ^ VSync);
 
   //VSync Logic
-  if(lineCounter >= 'd16) 
+  if(lineCounter == 'd0) 
     VSync <= 1'b1;
   else 
     VSync <= 1'b0;
