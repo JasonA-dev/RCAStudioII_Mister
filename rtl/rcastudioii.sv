@@ -59,7 +59,7 @@ pixie_dp pixie_dp (
     .SC(SC),              // I [1:0]
     .disp_on(io_n[0]),    // I
     .disp_off(~io_n[0]),  // I 
-    .data_in(ram_d),  // I [7:0]    <-- this needs investigating for alternatives
+    .data_in(video_din),  // I [7:0]    <-- this needs investigating for alternatives
 
     .DMAO(DMAO),          // O
     .INT(INT),            // O
@@ -156,7 +156,7 @@ cdp1802 cdp1802 (
   .ram_wr (ram_wr),       // O
   .ram_a  (ram_a), // O
   .ram_q  (ram_q),  // I
-  .ram_d  (ram_d)  // O
+  .ram_d  (cpu_ram_dout)  // O
 );
 
 ////////////////// RAM //////////////////////////////////////////////////////////////////
@@ -185,8 +185,8 @@ dpram #(.ADDR(12)) dpram (
 
 	.a_ce   (ram_rd),
 	.a_wr   (ram_wr),
-	.a_din  (ram_din),
-	.a_dout (ram_dout),
+	.a_din  (ram_d),
+	.a_dout (ram_q),
 	.a_addr (ram_a),
 
 	.b_ce   (ioctl_download),
@@ -218,18 +218,13 @@ wire mcart_cs = ram_a ==? 16'b0000_101x_xxxx_xxxx;
 
 reg [7:0] ram_din;
 
-always @(negedge clk) begin
- // ram_din <= cpu_ram_dout;  
+always @(posedge clk) begin
+  if (vram_cs && ram_wr) begin
+    video_din <= cpu_ram_dout;
+   // $display("cpu_ram_dout %x ram_a %x video_din %x", cpu_ram_dout, ram_a, video_din);
+  end 
 
- // if (vram_cs && ram_wr) begin
-    video_din <= ram_d;
- //   $display("ram_d %x ram_a %x video_din %x", ram_d, ram_a, video_din);
- // end 
-
- // cpu_ram_din <= ram_dout;
-
- // ram_a <= cpu_ram_addr;
-
+  ram_d <= cpu_ram_dout;
 end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)

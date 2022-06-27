@@ -22,9 +22,6 @@ module pixie_video
     input              clk,
     input              reset, 
 
-    output  reg        fb_read_en,
-    output       [9:0] fb_addr,
-    input        [7:0] fb_data,
     output             csync,
     output  reg        video,
 
@@ -46,7 +43,6 @@ module pixie_video
     output reg        EFx,
 
     output reg  [9:0] mem_addr,
-    output reg  [7:0] mem_data,
     output reg        mem_wr_en
 );
 
@@ -68,7 +64,6 @@ parameter  end_addr           = start_addr + 'h1ff;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-reg        load_pixel_shift_reg;
 reg  [7:0] pixel_shift_reg;
   
 reg  [7:0] horizontal_counter;
@@ -92,7 +87,7 @@ reg        DMA_xfer;
 reg  [9:0] addr_counter;
 
 reg  [7:0] byte_cache[8];
-reg  [7:0] byte_counter;
+reg  [7:0] byte_counter = 0;
 reg  [7:0] row_counter;
 reg  [7:0] cycle_counter;
 reg  [7:0] vram_addr = start_addr;
@@ -104,7 +99,6 @@ assign DMAO      = (enabled && VBlank==1'b0 && horizontal_counter >= 1 && horizo
 assign DMA_xfer  = (enabled && SC_dma) ? 1'b1 : 1'b0;
 
 assign mem_addr  = addr_counter;
-assign mem_data  = data_in;
 assign mem_wr_en = DMA_xfer;
 
 assign csync     = ~(HSync ^ VSync);
@@ -138,12 +132,7 @@ always @(posedge clk) begin
       vram_addr <= vram_addr + 1'd1;
     else 
       vram_addr <= start_addr;   
-
-  //  fb_addr <= vram_addr; 
   end    
-  
-  VBlank <= (vertical_counter   < 64 || vertical_counter   > 192) ? 1'b1 : 1'b0;  // 128 lines for NTSC
-  HBlank <= (horizontal_counter < 18 || horizontal_counter > 82)  ? 1'b1 : 1'b0;  // 64 pixels wide
 end
 
 // new vertical counter
@@ -158,9 +147,10 @@ always @(posedge clk) begin
     vertical_counter <= new_v;
     //$display("vertical_counter: %h new_v: %h", vertical_counter, new_v);  
   end
-
-    VSync <= (new_v < (vsync_start_line+vsync_height_lines)) ? 1'b1 : 1'b0;
+  VSync <= (new_v < (vsync_start_line+vsync_height_lines)) ? 1'b1 : 1'b0;
+  VBlank <= (vertical_counter   < 64 || vertical_counter   > 192) ? 1'b1 : 1'b0;  // 128 lines for NTSC  
 end
+
 // new horizontal counter
 always @(negedge clk) begin
   if (horizontal_counter == (pixels_per_line-1)) begin
@@ -173,26 +163,28 @@ always @(negedge clk) begin
 
   if(horizontal_counter[2:0]== 3'b000 && HBlank==1'b0) begin
     advance_addr <= 1'b1;
+    byte_cache[byte_counter] <= data_in;
+    byte_counter <= byte_counter + 1'd1;    
     //$display("new_h[2:0]== 3'b000 advance_addr: %h, vram_addr %h HBlank %h", advance_addr, vram_addr, HBlank);
   end
 
   horizontal_counter <= new_h;
   //$display("horizontal_counter: %h new_h: %h", horizontal_counter, new_h);
-
-  HSync     <= (new_h < (hsync_start_pixel+hsync_width_pixels)) ? 1'b1 : 1'b0;  
+  HSync <= (new_h < (hsync_start_pixel+hsync_width_pixels)) ? 1'b1 : 1'b0;  
+  HBlank <= (horizontal_counter < 18 || horizontal_counter > 82)  ? 1'b1 : 1'b0;  // 64 pixels wide
 end
 
 always @(posedge clk) begin
     if(clk_enable) begin
-      EFx       <= ((vertical_counter >=60 && vertical_counter < 65) || (vertical_counter >= 188 && vertical_counter < 193)) ? 1'b0 : 1'b1;
-      INT       <= (vertical_counter >= 62 && vertical_counter < 65)  ? 1'b1 : 1'b0;
+      EFx <= ((vertical_counter >=60 && vertical_counter < 65) || (vertical_counter >= 188 && vertical_counter < 193)) ? 1'b0 : 1'b1;
+      INT <= (vertical_counter >= 62 && vertical_counter < 65)  ? 1'b1 : 1'b0;
     end
 end
 
 //pixel_shifter_p
 always @(posedge clk) begin
-    if (advance_addr==1'b1) 
-        pixel_shift_reg <= fb_data;
+    if (advance_v) 
+        pixel_shift_reg <= byte_cache[byte_counter];
     else if (reset)
         pixel_shift_reg <= 0;
     else 

@@ -321,6 +321,9 @@ int main(int argc, char** argv, char** env) {
 		//ImGui::Begin("Pixie FB");
 		//mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_frame_buffer__DOT__ram, 4096, 0);		
 		//ImGui::End();
+		ImGui::Begin("Pixie Byte Cache");
+		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__byte_cache, 8, 0);		
+		ImGui::End();
 
 		// Debug 1802 cpu
 		ImGui::Begin("CDP 1802 Registers");
@@ -391,7 +394,6 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("EFx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__EFx);							
 		ImGui::Spacing();	
 		ImGui::Text("mem_addr:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__mem_addr);
-		ImGui::Text("mem_data:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__mem_data);
 		ImGui::Text("mem_wr_en:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__mem_wr_en);
 		ImGui::Spacing();	
 		ImGui::Text("horizontal_counter: 0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__horizontal_counter);
