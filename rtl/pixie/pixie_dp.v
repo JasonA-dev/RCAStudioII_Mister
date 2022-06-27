@@ -57,7 +57,7 @@ wire   [9:0] fb_b_addr;
 wire   [7:0] fb_b_data;
 wire         fb_b_en;
 
-
+/*
 pixie_dp_front_end pixie_dp_front_end (
     .clk        (clk),          // I
     .clk_enable (clk_enable),   // I
@@ -75,11 +75,11 @@ pixie_dp_front_end pixie_dp_front_end (
     .mem_data   (fb_a_data),    // O [7:0]
     .mem_wr_en  (fb_a_en)       // O
 );
+*/
 
-assign fb_a_en2 = (clk_enable & fb_a_en);
+//assign fb_a_en2 = (clk_enable & fb_a_en);
 
-
-
+/*
 pixie_dp_frame_buffer pixie_dp_frame_buffer (
     .clk_a    (clk),            // I
     .en_a     (fb_a_en2),       // I
@@ -91,7 +91,9 @@ pixie_dp_frame_buffer pixie_dp_frame_buffer (
     .addr_b   (fb_b_addr),      // I [9:0]
     .d_out_b  (fb_b_data)       // O [7:0]
 );
+*/
 
+/*
 pixie_dp_back_end pixie_dp_back_end (
     .clk        (video_clk),    // I
     .reset      (reset),        // I
@@ -109,6 +111,39 @@ pixie_dp_back_end pixie_dp_back_end (
     .HBlank     (HBlank),       // O
     .video_de   (video_de)      // O
 );
+*/
 
+pixie_video pixie_video (
+    .clk        (video_clk),    // I
+    .reset      (reset),        // I
+
+    .fb_read_en (fb_b_en),      // O
+    .fb_addr    (fb_b_addr),    // O [9:0]
+    .fb_data    (fb_b_data),    // I [7:0]
+
+    .csync      (csync),        // O
+    .video      (video),        // O
+
+    .VSync      (VSync),        // O
+    .HSync      (HSync),        // O  
+    .VBlank     (VBlank),       // O
+    .HBlank     (HBlank),       // O
+    .video_de   (video_de),     // O
+
+    // frontend
+    .clk_enable(clk_enable),    // I
+    .SC(SC),                    // I [1:0]
+    .disp_on(disp_on),          // I
+    .disp_off(disp_off),        // I
+    .data_in(data_in),          // I [7:0]
+
+    .DMAO(DMAO),                // O
+    .INT(INT),                  // O
+    .EFx(EFx),                  // O
+
+    .mem_addr(fb_a_addr),       // O [9:0]
+    .mem_data(fb_a_data),       // O [7:0]
+    .mem_wr_en(fb_a_en)         // O
+);
 
 endmodule

@@ -59,10 +59,7 @@ V_SRC = \
 	$(RTL)/cdp1861.v \	
 	$(RTL)/dpram.sv \	
 	$(RTL)/rom.v \
-	$(RTL)/pixie/pixie_dp.v \
-	$(RTL)/pixie/pixie_dp_back_end.v \	
-	$(RTL)/pixie/pixie_dp_front_end.v \
-	$(RTL)/pixie/pixie_dp_frame_buffer.v \
+	$(RTL)/pixie/pixie_video.v \
 	$(RTL)/pixie/pixie_dp.v
 
 C_SRC = \

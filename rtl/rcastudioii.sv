@@ -59,7 +59,7 @@ pixie_dp pixie_dp (
     .SC(SC),              // I [1:0]
     .disp_on(io_n[0]),    // I
     .disp_off(~io_n[0]),  // I 
-    .data_in(video_din),  // I [7:0]    <-- this needs investigating for alternatives
+    .data_in(ram_d),  // I [7:0]    <-- this needs investigating for alternatives
 
     .DMAO(DMAO),          // O
     .INT(INT),            // O
@@ -74,40 +74,10 @@ pixie_dp pixie_dp (
     .HSync(HSync),        // O
     .VBlank(VBlank),      // O
     .HBlank(HBlank),      // O
-    .video_de()           // O    
+    .video_de(video_de)   // O    
 );
 
-/*
-cdp1861 cdp1861 (
-    .clock(clk),
-    .reset(reset),
-
-    .Disp_On(io_n[0]),
-    .Disp_Off(~io_n[0]),
-    .TPA(1'b1),
-    .TPB(1'b1),
-    .SC(SC),
-    .DataIn(video_din),
-
-    .Clear(),
-    .INT(INT),
-    .DMAO(DMAO),
-    .EFx(EFx),
-
-    .video(video),
-    .CompSync(),
-    .Locked(),
-
-    .VSync(VSync),
-    .HSync(HSync),
-    .VBlank(VBlank),
-    .HBlank(HBlank),
-
-    .video_de()     
-);
-*/
-
-assign video_de = ~(HBlank | VBlank);
+//assign video_de = ~(HBlank | VBlank);
 
 ////////////////// KEYPAD //////////////////////////////////////////////////////////////////
 
@@ -143,7 +113,7 @@ reg  [3:0] EF = 4'b1111;
 // 0111  EF4 Key pressed on keypad 2
 // 1011  EF3 Key pressed on keypad 1
 // 1101  EF2 not connected
-// 1110  EF1 Video display monitoring, driven by efx from 1861
+// 1110  EF1 Video display monitoring, driven by EFx from 1861
 always @(posedge clk) begin
     if ((btnKP1 != 'hff) && pressed)
       EF <= 4'b1011;
@@ -184,9 +154,9 @@ cdp1802 cdp1802 (
 
   .ram_rd (ram_rd),       // O
   .ram_wr (ram_wr),       // O
-  .ram_a  (cpu_ram_addr), // O
-  .ram_q  (cpu_ram_din),  // I
-  .ram_d  (cpu_ram_dout)  // O
+  .ram_a  (ram_a), // O
+  .ram_q  (ram_q),  // I
+  .ram_d  (ram_d)  // O
 );
 
 ////////////////// RAM //////////////////////////////////////////////////////////////////
@@ -248,20 +218,17 @@ wire mcart_cs = ram_a ==? 16'b0000_101x_xxxx_xxxx;
 
 reg [7:0] ram_din;
 
-always @(posedge clk) begin
-  ram_din <= cpu_ram_dout;  
+always @(negedge clk) begin
+ // ram_din <= cpu_ram_dout;  
 
-  if (vram_cs && ram_wr) begin
-    //ram_rd <= fb_read_en;
-    //ram_a <= fb_addr;
-    //video_din <= fb_data;   
-    video_din <= cpu_ram_dout;
-    //$display("ram_d %x ram_a %x video_din %x", ram_d, ram_a, video_din);
-  end 
+ // if (vram_cs && ram_wr) begin
+    video_din <= ram_d;
+ //   $display("ram_d %x ram_a %x video_din %x", ram_d, ram_a, video_din);
+ // end 
 
-  cpu_ram_din <= ram_dout;
+ // cpu_ram_din <= ram_dout;
 
-  ram_a <= cpu_ram_addr;
+ // ram_a <= cpu_ram_addr;
 
 end
 
