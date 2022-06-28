@@ -8,6 +8,7 @@ verilator \
 ../rtl/rcastudioii.sv \
 ../rtl/cdp1802.v \
 ../rtl/dpram.sv \
+../rtl/dma.v \
 ../rtl/rom.v \
 ../rtl/cdp1861.v \
 ../rtl/pixie/pixie_video.v \

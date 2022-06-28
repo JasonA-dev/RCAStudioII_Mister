@@ -18,7 +18,8 @@
 
 module rcastudioii
 (
-	input              clk,
+	input              clk_sys,
+  input              clk_cpu,
 	input              reset,
 	
   input wire         ioctl_download,
@@ -50,16 +51,20 @@ wire   DMAO;
 wire   EFx;
 wire   Locked;
 
+wire vram_rd;
 pixie_dp pixie_dp (
     // front end, CDP1802 bus clock domain
-    .clk(clk),            // I
+    .clk(clk_sys),        // I
     .reset(reset),        // I
     .clk_enable(ce_pix),  // I      
 
     .SC(SC),              // I [1:0]
     .disp_on(io_n[0]),    // I
     .disp_off(~io_n[0]),  // I 
-    .data_in(video_din),  // I [7:0]    <-- this needs investigating for alternatives
+
+    .data_addr(),         // O [9:0]
+    .data_rd(vram_rd),    // O    
+    .data_in(video_din),  // I [7:0]    
 
     .DMAO(DMAO),          // O
     .INT(INT),            // O
@@ -77,8 +82,6 @@ pixie_dp pixie_dp (
     .video_de(video_de)   // O    
 );
 
-//assign video_de = ~(HBlank | VBlank);
-
 ////////////////// KEYPAD //////////////////////////////////////////////////////////////////
 
 reg [7:0] btnKP1 = 'hff;
@@ -86,7 +89,7 @@ reg [7:0] btnKP2 = 'hff;
 
 wire       pressed = ps2_key[9];
 wire [7:0] code    = ps2_key[7:0];
-always @(posedge clk) begin
+always @(posedge clk_sys) begin
 	reg old_state;
 	old_state <= ps2_key[10];
 
@@ -114,7 +117,7 @@ reg  [3:0] EF = 4'b1111;
 // 1011  EF3 Key pressed on keypad 1
 // 1101  EF2 not connected
 // 1110  EF1 Video display monitoring, driven by EFx from 1861
-always @(posedge clk) begin
+always @(posedge clk_sys) begin
     if ((btnKP1 != 'hff) && pressed)
       EF <= 4'b1011;
     else if ((btnKP2 != 'hff) && pressed)
@@ -138,7 +141,7 @@ reg  [7:0] cpu_ram_din;
 reg  [7:0] cpu_ram_dout;
 
 cdp1802 cdp1802 (
-  .clock    (clk),
+  .clock    (clk_sys),
   .resetq   (~reset),
 
   .Q        (Q),        // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
@@ -154,8 +157,8 @@ cdp1802 cdp1802 (
 
   .ram_rd (ram_rd),       // O
   .ram_wr (ram_wr),       // O
-  .ram_a  (ram_a), // O
-  .ram_q  (ram_q),  // I
+  .ram_a  (cpu_ram_addr), // O
+  .ram_q  (cpu_ram_din),  // I
   .ram_d  (cpu_ram_dout)  // O
 );
 
@@ -165,8 +168,6 @@ reg ram_cs;
 
 reg          ram_rd; // RAM read enable
 reg          ram_wr; // RAM write enable
-reg  [15:0]  ram_a;  // RAM address
-reg   [7:0]  ram_q;  // RAM read data
 reg   [7:0]  ram_d;  // RAM write data
 
 wire  [7:0]   romDo_StudioII;
@@ -174,26 +175,26 @@ wire [11:0]   romA;
 
 rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
 (
-	.clock      (clk            ),
+	.clock      (clk_sys        ),
 	.ce         (1'b1           ),
 	.data_out   (romDo_StudioII ),
 	.a          (romA[10:0]     )
 );
 
 dpram #(.ADDR(12)) dpram (
-  .clk    (clk),
+  .clk    (clk_sys),        // I
 
-	.a_ce   (ram_rd),
-	.a_wr   (ram_wr),
-	.a_din  (ram_d),
-	.a_dout (ram_q),
-	.a_addr (ram_a),
+	.a_ce   (ram_rd),         // I
+	.a_wr   (ram_wr),         // I
+	.a_din  (DI),             // I
+	.a_dout (cpu_ram_din),    // O
+	.a_addr (cpu_ram_addr),   // I
 
-	.b_ce   (ioctl_download),
-	.b_wr   (ioctl_wr),
-	.b_din  (ioctl_dout),
-	.b_dout (),
-	.b_addr ((ioctl_index==0) ? ioctl_addr : (16'h0400 + ioctl_addr))
+	.b_ce   (ioctl_download), // I
+	.b_wr   (ioctl_wr),       // I
+	.b_din  (ioctl_dout),     // I
+	.b_dout (),               // O
+	.b_addr ((ioctl_index==0) ? ioctl_addr : (16'h0400 + ioctl_addr)) // I
 );
 
 ////////////////// DMA //////////////////////////////////////////////////////////////////
@@ -210,21 +211,44 @@ dpram #(.ADDR(12)) dpram (
 //                      so assume this is ROM for emulation purposes.
 //0E00-0FFF	Cartridge	  (MultiCart) Available for Cartridge games if required, probably isn't.
 
-wire rom_cs   = ram_a ==? 16'b0000_00xx_xxxx_xxxx;
-wire cart_cs  = ram_a ==? 16'b0000_01xx_xxxx_xxxx; 
-wire pram_cs  = ram_a ==? 16'b0000_1000_xxxx_xxxx; 
-wire vram_cs  = ram_a ==? 16'b0000_1001_xxxx_xxxx; 
-wire mcart_cs = ram_a ==? 16'b0000_101x_xxxx_xxxx; 
+wire rom_cs   = AB ==? 16'b0000_00xx_xxxx_xxxx;
+wire cart_cs  = AB ==? 16'b0000_01xx_xxxx_xxxx; 
+wire pram_cs  = AB ==? 16'b0000_1000_xxxx_xxxx; 
+wire vram_cs  = AB ==? 16'b0000_1001_xxxx_xxxx; 
+wire mcart_cs = AB ==? 16'b0000_101x_xxxx_xxxx; 
 
-reg [7:0] ram_din;
+reg [15:0] vram_addr;
+wire [15:0] AB = dma_busy ? { 2'b0, dma_addr } : cpu_ram_addr;
+wire [7:0] DO = dma_busy ? dma_dout : cpu_ram_dout;
+wire pram_we = pram_cs ? dma_busy ? ~dma_write : ~ram_wr : 1'b1;
+wire vram_we = vram_cs ? dma_busy ? ~dma_write : ~ram_wr : 1'b1;
 
-always @(posedge clk) begin
+always @(negedge clk_sys) begin
+  DI <= rom_cs   ? cpu_ram_dout :
+        cart_cs  ? cpu_ram_dout :
+        pram_cs  ? cpu_ram_dout :
+        vram_cs  ? cpu_ram_dout :        
+        mcart_cs ? cpu_ram_dout : 
+        8'hff;
+
+  if (ram_wr)
+    case (AB[2:0])
+      3'h0: dma_src_lo <= cpu_ram_addr[7:0];
+      3'h1: dma_src_hi <= cpu_ram_addr[15:8];
+      3'h2: dma_dst_lo <= cpu_ram_addr[7:0];
+      3'h3: dma_dst_hi <= cpu_ram_addr[15:8];
+      3'h4: dma_length <= 1;
+      //3'h5: dma_ctrl   <= cpu_ram_dout;
+      default:
+        dma_ctrl <= 8'd0;
+    endcase        
+end
+
+always @(negedge clk_sys) begin
   if (vram_cs && ram_wr) begin
     video_din <= cpu_ram_dout;
    // $display("cpu_ram_dout %x ram_a %x video_din %x", cpu_ram_dout, ram_a, video_din);
   end 
-
-  ram_d <= cpu_ram_dout;
 end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)
@@ -233,6 +257,33 @@ end
 // 0x48b = game 3
 // 0x48d = game 4
 // 0x48f = game 5
+
+wire lcd_pulse;
+wire dma_rdy = ~lcd_pulse;
+reg [7:0] dma_ctrl = 8'hf;
+reg [7:0] dma_src_hi;
+reg [7:0] dma_src_lo;
+reg [7:0] dma_dst_hi;
+reg [7:0] dma_dst_lo;
+reg [7:0] dma_addr;
+reg [7:0] DI;
+wire [7:0] dma_dout;
+reg [7:0] dma_length;
+
+dma dma(
+  .clk(clk_sys),
+  .rdy(dma_rdy),
+  .ctrl(dma_ctrl),
+  .src_addr({ dma_src_hi, dma_src_lo }),
+  .dst_addr({ dma_dst_hi, dma_dst_lo }),
+  .addr(dma_addr), // => to AB
+  .din(DI),
+  .dout(dma_dout),
+  .length(dma_length),
+  .busy(dma_busy),
+  .sel(dma_sel),
+  .write(dma_write)
+);
 
 /////////////////////////////////////////////////////////////////////////////////////////
 

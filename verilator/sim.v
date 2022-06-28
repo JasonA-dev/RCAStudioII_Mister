@@ -4,6 +4,7 @@
 module top(
 
    input clk_48 /*verilator public_flat*/,
+   input clk_24,
    input [11:0]  inputs/*verilator public_flat*/,
 
    output [7:0] VGA_R/*verilator public_flat*/,
@@ -61,7 +62,8 @@ always @(posedge clk_48) old_keystb <= ps2_key[10];
 
 rcastudioii rcastudio
 (
-	.clk(clk_48),
+	.clk_sys(clk_48),
+   .clk_cpu(clk_24),
 	.reset(reset),
 	
 	.ioctl_download(ioctl_download),

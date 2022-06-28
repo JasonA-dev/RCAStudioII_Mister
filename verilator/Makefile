@@ -57,7 +57,8 @@ V_SRC = \
 	$(RTL)/rcastudioii.sv \
 	$(RTL)/cdp1802.v \
 	$(RTL)/cdp1861.v \	
-	$(RTL)/dpram.sv \	
+	$(RTL)/dpram.sv \
+	$(RTL)/dma.v \		
 	$(RTL)/rom.v \
 	$(RTL)/pixie/pixie_video.v \
 	$(RTL)/pixie/pixie_dp.v

@@ -28,7 +28,7 @@ module pixie_dp
     input         disp_off,
 
     input   [7:0] data_in,     
-    output reg [9:0] data_addr,
+    output reg [15:0] data_addr,
     output        data_rd,
 
     output        DMAO,     

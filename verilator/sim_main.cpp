@@ -88,7 +88,8 @@ double sc_time_stamp() {	// Called by $time in Verilog.
 }
 
 int clk_sys_freq = 48000000;
-SimClock clk_48(1); // 48mhz
+SimClock clk_48(1); 
+//SimClock clk_24(2); 
 
 // VCD trace logging
 // -----------------
@@ -126,6 +127,7 @@ SimAudio audio(clk_sys_freq, true);
 void resetSim() {
 	main_time = 0;
 	clk_48.Reset();
+	//clk_24.Reset();
 }
 
 int verilate() {
@@ -139,9 +141,11 @@ int verilate() {
 
 		// Clock dividers
 		clk_48.Tick();
+		//clk_24.Tick();
 
 		// Set clocks in core
 		top->clk_48 = clk_48.clk;
+		//top->clk_24 = clk_24.clk;
 
 		// Simulate both edges of fastest clock
 		if (clk_48.clk != clk_48.old) {
@@ -475,14 +479,20 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Spacing();														
 		ImGui::End();
 
-		// Debug DMA
-		ImGui::Begin("DMA");
+		// Debug DMA Top
+		ImGui::Begin("DMA Top");
 		ImGui::Text("rom_cs:	 0x%02X", top->top__DOT__rcastudio__DOT__rom_cs);	
 		ImGui::Text("cart_cs:	0x%02X", top->top__DOT__rcastudio__DOT__cart_cs);
 		ImGui::Text("pram_cs:	0x%02X", top->top__DOT__rcastudio__DOT__pram_cs);
 		ImGui::Text("vram_cs:	0x%02X", top->top__DOT__rcastudio__DOT__vram_cs);
 		ImGui::Text("mcart_cs:   0x%02X", top->top__DOT__rcastudio__DOT__mcart_cs);						
-		ImGui::Spacing();														
+		ImGui::Spacing();	
+		ImGui::Text("AB:		 0x%04X", top->top__DOT__rcastudio__DOT__AB);	
+		ImGui::Text("DO:		0x%02X", top->top__DOT__rcastudio__DOT__DO);
+		ImGui::Text("pram_we:	0x%02X", top->top__DOT__rcastudio__DOT__pram_we);
+		ImGui::Text("vram_we:	0x%02X", top->top__DOT__rcastudio__DOT__vram_we);
+		ImGui::Text("dma_busy:   0x%02X", top->top__DOT__rcastudio__DOT__dma_busy);		
+		ImGui::Text("dma_write:   0x%02X", top->top__DOT__rcastudio__DOT__dma_write);														
 		ImGui::End();
 
 		// Debug Keypad 1
@@ -498,6 +508,27 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("btnKP1_9: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_9);
 		ImGui::Text("btnKP1_0: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_0);	*/						
 		ImGui::Spacing();														
+		ImGui::End();
+
+		// Debug DMA
+		ImGui::Begin("DMA");
+		ImGui::Text("rdy:	 	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__rdy);	
+		ImGui::Text("ctrl:		0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__ctrl);
+		ImGui::Text("src_addr:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__src_addr);
+		ImGui::Text("dst_addr:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__dst_addr);
+		ImGui::Text("addr:   	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__addr);			
+		ImGui::Text("din:	 	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__din);	
+		ImGui::Text("dout:		0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__dout);
+		ImGui::Text("length:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__length);
+		ImGui::Text("busy:		0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__busy);
+		ImGui::Text("sel:   	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__sel);	
+		ImGui::Text("write:	 	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__write);	
+		ImGui::Spacing();		
+		ImGui::Text("state:	 	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__state);	
+		ImGui::Text("queue:	 	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__queue);
+		ImGui::Text("addr_a:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__addr_a);
+		ImGui::Text("addr_b:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__addr_b);
+		ImGui::Text("started:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__started);
 		ImGui::End();
 
 		// Trace/VCD window
