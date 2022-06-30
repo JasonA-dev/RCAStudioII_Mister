@@ -158,7 +158,7 @@ cdp1802 cdp1802 (
   .ram_rd (ram_rd),       // O
   .ram_wr (ram_wr),       // O
   .ram_a  (cpu_ram_addr), // O
-  .ram_q  (cpu_ram_din),  // I
+  .ram_q  (DI),           // I
   .ram_d  (cpu_ram_dout)  // O
 );
 
@@ -187,8 +187,8 @@ dpram #(.ADDR(12)) dpram (
 	.a_ce   (ram_rd),         // I
 	.a_wr   (ram_wr),         // I
 	.a_din  (DI),             // I
-	.a_dout (cpu_ram_din),    // O
-	.a_addr (cpu_ram_addr),   // I
+	.a_dout (dpram_dout),     // O
+	.a_addr (AB),       // I
 
 	.b_ce   (ioctl_download), // I
 	.b_wr   (ioctl_wr),       // I
@@ -217,9 +217,9 @@ wire pram_cs  = AB ==? 16'b0000_1000_xxxx_xxxx;
 wire vram_cs  = AB ==? 16'b0000_1001_xxxx_xxxx; 
 wire mcart_cs = AB ==? 16'b0000_101x_xxxx_xxxx; 
 
-reg [15:0] vram_addr;
-wire [15:0] AB = dma_busy ? { 2'b0, dma_addr } : cpu_ram_addr;
-wire [7:0] DO = dma_busy ? dma_dout : cpu_ram_dout;
+reg  [15:0] vram_addr;
+wire [15:0] AB = dma_busy ? dma_addr : cpu_ram_addr;
+wire  [7:0] DO = dma_busy ? dma_dout : cpu_ram_dout;
 wire pram_we = pram_cs ? dma_busy ? ~dma_write : ~ram_wr : 1'b1;
 wire vram_we = vram_cs ? dma_busy ? ~dma_write : ~ram_wr : 1'b1;
 
@@ -229,19 +229,7 @@ always @(negedge clk_sys) begin
         pram_cs  ? cpu_ram_dout :
         vram_cs  ? cpu_ram_dout :        
         mcart_cs ? cpu_ram_dout : 
-        8'hff;
-
-  if (ram_wr)
-    case (AB[2:0])
-      3'h0: dma_src_lo <= cpu_ram_addr[7:0];
-      3'h1: dma_src_hi <= cpu_ram_addr[15:8];
-      3'h2: dma_dst_lo <= cpu_ram_addr[7:0];
-      3'h3: dma_dst_hi <= cpu_ram_addr[15:8];
-      3'h4: dma_length <= 1;
-      //3'h5: dma_ctrl   <= cpu_ram_dout;
-      default:
-        dma_ctrl <= 8'd0;
-    endcase        
+        8'hff;     
 end
 
 always @(negedge clk_sys) begin
@@ -258,24 +246,19 @@ end
 // 0x48d = game 4
 // 0x48f = game 5
 
-wire lcd_pulse;
-wire dma_rdy = ~lcd_pulse;
-reg [7:0] dma_ctrl = 8'hf;
-reg [7:0] dma_src_hi;
-reg [7:0] dma_src_lo;
-reg [7:0] dma_dst_hi;
-reg [7:0] dma_dst_lo;
-reg [7:0] dma_addr;
-reg [7:0] DI;
-wire [7:0] dma_dout;
-reg [7:0] dma_length;
+wire        dma_rdy = DMAO;
+reg         dma_ctrl = 1'b1;
+reg  [15:0] dma_addr;
+reg   [7:0] DI;
+wire  [7:0] dma_dout;
+reg   [7:0] dma_length = 8'b1;
 
 dma dma(
   .clk(clk_sys),
   .rdy(dma_rdy),
   .ctrl(dma_ctrl),
-  .src_addr({ dma_src_hi, dma_src_lo }),
-  .dst_addr({ dma_dst_hi, dma_dst_lo }),
+  .src_addr(cpu_ram_addr),
+  .dst_addr(cpu_ram_addr),
   .addr(dma_addr), // => to AB
   .din(DI),
   .dout(dma_dout),

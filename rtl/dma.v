@@ -19,7 +19,7 @@
 module dma(
   input clk, 
   input rdy,
-  input [7:0] ctrl,
+  input ctrl,
   input [15:0] src_addr,
   input [15:0] dst_addr,
   output reg [15:0] addr,
@@ -47,12 +47,12 @@ parameter
   WRITE = 2'b11;
 
 always @(posedge clk)
-  started <= ctrl[7] ? 1'b1 : 1'b0;
+  started <= ctrl ? 1'b1 : 1'b0;
 
 always @(posedge clk)
   if (rdy)
     case (state)
-      DONE: if (~started & ctrl[7]) state <= START;
+      DONE: if (~started & ctrl) state <= START;
       START: state <= READ;
       READ: state <= WRITE;
       WRITE: state <= queue == 0 ? DONE : READ;
