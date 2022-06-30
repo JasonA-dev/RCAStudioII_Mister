@@ -71,7 +71,7 @@ pixie_dp pixie_dp (
     .EFx(EFx),            // O
 
     // back end, video clock domain
-    .video_clk(clk),      // I
+    .video_clk(clk_sys),  // I
     .csync(),             // O
     .video(video),        // O
 
@@ -140,12 +140,23 @@ reg [15:0] cpu_ram_addr;
 reg  [7:0] cpu_ram_din;
 reg  [7:0] cpu_ram_dout;
 
+reg WAIT_N      = 1'b0;
+reg INT_N       = 1'b0;
+reg dma_in_req  = 1'b0;
+reg dma_out_req = 1'b0;
+
 cdp1802 cdp1802 (
-  .clock    (clk_sys),
-  .resetq   (~reset),
+  .CLOCK    (clk_sys),
+  .CLEAR_N  (~reset),
 
   .Q        (Q),        // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
   .EF       (EF),       // I 3:0 external flags EF1 to EF4
+
+  .WAIT_N       (wait_req),
+  .INT_N        (INT_N),
+  .dma_in_req   (dma_in_req),
+  .dma_out_req  (dma_out_req),
+  .SC           (SC),
 
   .io_din   (cpu_din),     
   .io_dout  (cpu_dout),    
@@ -157,10 +168,31 @@ cdp1802 cdp1802 (
 
   .ram_rd (ram_rd),       // O
   .ram_wr (ram_wr),       // O
-  .ram_a  (cpu_ram_addr), // O
-  .ram_q  (DI),           // I
-  .ram_d  (cpu_ram_dout)  // O
+  .ram_a  (ram_a),        // O cpu_ram_addr
+  .ram_q  (ram_q),        // I DI
+  .ram_d  (ram_d)         // O cpu_ram_dout
 );
+
+/*
+cosmac cosmac (
+   .clk         (clk_sys),     // I
+   .clk_enable  (1'b1),        // I
+   .clear       (~reset),      // I
+   .dma_in_req  (dma_in_req),  // I
+   .dma_out_req (dma_out_req), // I
+   .int_req     (INT_N),       // I
+   .wait_req    (wait_req),    // I
+   .ef          (EF),          // I [4:1]
+   .data_in     (ram_q),       // I [7:0]
+   .data_out    (ram_d),       // O [7:0]
+   .address     (ram_a),       // O [15:0]
+   .mem_read    (ram_rd),      // O
+   .mem_write   (ram_wr),      // O
+   .io_port     (io_n),        // O [2:0]
+   .q_out       (Q),           // O
+   .sc          (SC)           // O [1:0]
+);
+*/
 
 ////////////////// RAM //////////////////////////////////////////////////////////////////
 
@@ -169,6 +201,8 @@ reg ram_cs;
 reg          ram_rd; // RAM read enable
 reg          ram_wr; // RAM write enable
 reg   [7:0]  ram_d;  // RAM write data
+reg  [15:0]  ram_a;  // RAM address
+reg   [7:0]  ram_q;  // RAM read data
 
 wire  [7:0]   romDo_StudioII;
 wire [11:0]   romA;
@@ -186,9 +220,9 @@ dpram #(.ADDR(12)) dpram (
 
 	.a_ce   (ram_rd),         // I
 	.a_wr   (ram_wr),         // I
-	.a_din  (DI),             // I
-	.a_dout (dpram_dout),     // O
-	.a_addr (AB),       // I
+	.a_din  (ram_d),          // I DI
+	.a_dout (ram_q),          // O dpram_dout
+	.a_addr (ram_a),          // I AB
 
 	.b_ce   (ioctl_download), // I
 	.b_wr   (ioctl_wr),       // I
@@ -211,32 +245,40 @@ dpram #(.ADDR(12)) dpram (
 //                      so assume this is ROM for emulation purposes.
 //0E00-0FFF	Cartridge	  (MultiCart) Available for Cartridge games if required, probably isn't.
 
-wire rom_cs   = AB ==? 16'b0000_00xx_xxxx_xxxx;
-wire cart_cs  = AB ==? 16'b0000_01xx_xxxx_xxxx; 
-wire pram_cs  = AB ==? 16'b0000_1000_xxxx_xxxx; 
-wire vram_cs  = AB ==? 16'b0000_1001_xxxx_xxxx; 
-wire mcart_cs = AB ==? 16'b0000_101x_xxxx_xxxx; 
+wire rom_cs   = ram_a ==? 16'b0000_00xx_xxxx_xxxx;
+wire cart_cs  = ram_a ==? 16'b0000_01xx_xxxx_xxxx; 
+wire pram_cs  = ram_a ==? 16'b0000_1000_xxxx_xxxx; 
+wire vram_cs  = ram_a ==? 16'b0000_1001_xxxx_xxxx; 
+wire mcart_cs = ram_a ==? 16'b0000_101x_xxxx_xxxx; 
 
 reg  [15:0] vram_addr;
-wire [15:0] AB = dma_busy ? dma_addr : cpu_ram_addr;
-wire  [7:0] DO = dma_busy ? dma_dout : cpu_ram_dout;
+wire [15:0] AB = dma_busy ? dma_addr : ram_a;
+wire  [7:0] DO = dma_busy ? dma_dout : ram_d;
 wire pram_we = pram_cs ? dma_busy ? ~dma_write : ~ram_wr : 1'b1;
 wire vram_we = vram_cs ? dma_busy ? ~dma_write : ~ram_wr : 1'b1;
 
+/*
 always @(negedge clk_sys) begin
-  DI <= rom_cs   ? cpu_ram_dout :
-        cart_cs  ? cpu_ram_dout :
-        pram_cs  ? cpu_ram_dout :
-        vram_cs  ? cpu_ram_dout :        
-        mcart_cs ? cpu_ram_dout : 
+  DI <= rom_cs   ? ram_d :
+        cart_cs  ? ram_d :
+        pram_cs  ? ram_d :
+        vram_cs  ? ram_d :        
+        mcart_cs ? ram_d : 
         8'hff;     
 end
+*/
 
 always @(negedge clk_sys) begin
   if (vram_cs && ram_wr) begin
-    video_din <= cpu_ram_dout;
+    video_din <= ram_d;
+  end
+  else begin
+    video_din <= 8'd0;
+  end
+  
+  DI <= ram_d;
    // $display("cpu_ram_dout %x ram_a %x video_din %x", cpu_ram_dout, ram_a, video_din);
-  end 
+
 end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)
@@ -253,19 +295,19 @@ reg   [7:0] DI;
 wire  [7:0] dma_dout;
 reg   [7:0] dma_length = 8'b1;
 
-dma dma(
-  .clk(clk_sys),
-  .rdy(dma_rdy),
-  .ctrl(dma_ctrl),
-  .src_addr(cpu_ram_addr),
-  .dst_addr(cpu_ram_addr),
-  .addr(dma_addr), // => to AB
-  .din(DI),
-  .dout(dma_dout),
-  .length(dma_length),
-  .busy(dma_busy),
-  .sel(dma_sel),
-  .write(dma_write)
+dma dma (
+  .clk      (clk_sys),      // I
+  .rdy      (dma_rdy),      // I
+  .ctrl     (dma_ctrl),     // I
+  .src_addr (ram_a),        // I 15:0
+  .dst_addr (ram_a),        // I 15:0
+  .addr     (dma_addr),     // O 15:0 => to AB
+  .din      (DI),           // I 7:0
+  .dout     (dma_dout),     // I 7:0
+  .length   (dma_length),   // I
+  .busy     (dma_busy),     // O
+  .sel      (dma_sel),      // O
+  .write    (dma_write)     // O
 );
 
 /////////////////////////////////////////////////////////////////////////////////////////

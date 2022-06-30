@@ -20,11 +20,43 @@
 /* verilator lint_off UNOPTFLAT */
 
 module cdp1802 (
-  input               clock,
-  input               resetq,
+  input               CLOCK,      // CLOCK
+  input               CLEAR_N,    // CLEAR_N
 
   output reg          Q,          // external pin Q
-  input      [3:0]    EF,         // external flags EF1 to EF4
+  input      [3:0]    EF,         // external flags EF1 to EF4, separate pins negative
+
+  // WAIT CLEAR  Control Lines
+  // Clear 0 Wait 0 Load
+  // Clear 0 Wait 1 Reset
+  // Clear 1 Wait 0 Pause
+  // Clear 1 Wait 1 Run
+
+  // SC_1   State Code Line
+  // SC_0   State Code Line
+  // SC1 0 SC0 0  S0 Fetch
+  // SC1 0 SC0 1  S1 Execute
+  // SC1 1 SC0 0  S2 DMA
+  // SC1 1 SC0 1  S3 Interrupt
+
+  // MRD_N  Read Level
+  // DATABUS 0-7  BUS0-BUS7
+  // N0     I/O Line
+  // N1     I/O Line
+  // N2     I/O Line
+  // XTAL_N
+  // DMA_IN_N
+  // DMA_OUT_N
+  // MWR_N  Write Pulse
+  // TPA    Timing Pulse
+  // TPB    Timing Pulse
+  // MEMORY_ADDR 0-7 MA0-MA7  Memory Address Lines
+
+  input               WAIT_N,     // WAIT_N
+  input               INT_N,      // INT_N
+  input               dma_in_req,
+  input               dma_out_req,
+  output reg [1:0]    SC,
 
   input      [7:0]    io_din,     // IO data in
   output     [7:0]    io_dout,    // IO data out
@@ -41,6 +73,10 @@ module cdp1802 (
   output     [7:0]    ram_d       // RAM write data
 );
 
+  // ---------- control signals -------------------------- 
+  //reg waiting;
+  //assign waiting = (wait_req && resetq) ? 1'b1 : 1'b0;  
+
   // ---------- execution states -------------------------
   reg [2:0] state, state_n;
 
@@ -51,6 +87,18 @@ module cdp1802 (
   localparam BRANCH2   = 3'd4;    // long branch, collect new PC hi-byte
   localparam BRANCH3   = 3'd5;    // short branch, new PC lo-byte
   localparam SKIP      = 3'd6;    // for untaken branch
+
+/*
+  localparam RESET [3:0]     = 4'b0000;  // sc_execute
+  localparam RESET2 [3:0]    = 4'b0001;  // sc_execute
+  localparam LOAD [3:0]      = 4'b0010;  // sc_execute
+  localparam FETCH [3:0]     = 4'b0011;  // sc_fetch
+  localparam EXECUTE [3:0]   = 4'b0100;  // sc_execute
+  localparam EXECUTE2 [3:0]  = 4'b0101;  // sc_execute
+  localparam DMA_IN [3:0]    = 4'b0110;  // sc_dma
+  localparam DMA_OUT [3:0]   = 4'b0111;  // sc_dma
+  localparam INTERRUPT [3:0] = 4'b1000;  // sc_interrupt
+*/ 
 
   // ---------- registers --------------------------------
   reg [3:0] P, X;
@@ -173,22 +221,27 @@ module cdp1802 (
   assign unsupported = {I, N} == 8'h70;
 
   // ---------- cycle commit -----------------------------
-  always @(negedge resetq or posedge clock)
-    if (!resetq) begin
-      {ram_q_, Q, P, X} <= 0;
-      {DF, D} <= 9'd0;
-      R[0] <= 16'd0;
-      state <= RESET;
-    end else begin
-      state <= state_n;
-      if (state == EXECUTE)
-        {ram_q_, Q, P, X} <= {ram_q, Q_n, P_n, X_n};
-      if (state != EXECUTE2)
-        R[Ra] <= Rwd;
-      if (((state == EXECUTE) & !ram_rd) || (state == EXECUTE2))
-        {DF, D} <= DFD_n;
-      if (state == BRANCH2)
-        B <= ram_q;
+  always @(negedge CLEAR_N or posedge CLOCK) begin
+    // Reset
+    if (!CLEAR_N) begin
+        {ram_q_, Q, P, X} <= 0;
+        {DF, D} <= 9'd0;
+        R[0] <= 16'd0;
+        state <= RESET;
+      end 
+    else begin
+      if(!WAIT_N && CLEAR_N) begin
+        state <= state_n;
+        if (state == EXECUTE)
+          {ram_q_, Q, P, X} <= {ram_q, Q_n, P_n, X_n};
+        if (state != EXECUTE2)
+          R[Ra] <= Rwd;
+        if (((state == EXECUTE) & !ram_rd) || (state == EXECUTE2))
+          {DF, D} <= DFD_n;
+        if (state == BRANCH2)
+          B <= ram_q;
+      end
     end
+  end
 
 endmodule

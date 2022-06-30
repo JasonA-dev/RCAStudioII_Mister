@@ -488,11 +488,11 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("mcart_cs:   0x%02X", top->top__DOT__rcastudio__DOT__mcart_cs);						
 		ImGui::Spacing();	
 		ImGui::Text("AB:		 0x%04X", top->top__DOT__rcastudio__DOT__AB);	
-		ImGui::Text("DO:		0x%02X", top->top__DOT__rcastudio__DOT__DO);
+		ImGui::Text("DO:	     0x%02X", top->top__DOT__rcastudio__DOT__DO);
 		ImGui::Text("pram_we:	0x%02X", top->top__DOT__rcastudio__DOT__pram_we);
 		ImGui::Text("vram_we:	0x%02X", top->top__DOT__rcastudio__DOT__vram_we);
 		ImGui::Text("dma_busy:   0x%02X", top->top__DOT__rcastudio__DOT__dma_busy);		
-		ImGui::Text("dma_write:   0x%02X", top->top__DOT__rcastudio__DOT__dma_write);														
+		ImGui::Text("dma_write:  0x%02X", top->top__DOT__rcastudio__DOT__dma_write);														
 		ImGui::End();
 
 		// Debug Keypad 1
@@ -516,19 +516,19 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("ctrl:		0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__ctrl);
 		ImGui::Text("src_addr:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__src_addr);
 		ImGui::Text("dst_addr:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__dst_addr);
-		ImGui::Text("addr:   	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__addr);			
+		ImGui::Text("addr:   	 0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__addr);			
 		ImGui::Text("din:	 	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__din);	
 		ImGui::Text("dout:		0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__dout);
-		ImGui::Text("length:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__length);
+		ImGui::Text("length:	  0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__length);
 		ImGui::Text("busy:		0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__busy);
-		ImGui::Text("sel:   	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__sel);	
-		ImGui::Text("write:	 	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__write);	
+		ImGui::Text("sel:   	  0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__sel);	
+		ImGui::Text("write:	   0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__write);	
 		ImGui::Spacing();		
-		ImGui::Text("state:	 	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__state);	
-		ImGui::Text("queue:	 	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__queue);
-		ImGui::Text("addr_a:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__addr_a);
-		ImGui::Text("addr_b:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__addr_b);
-		ImGui::Text("started:	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__started);
+		ImGui::Text("state:	   0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__state);	
+		ImGui::Text("queue:	   0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__queue);
+		ImGui::Text("addr_a:	  0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__addr_a);
+		ImGui::Text("addr_b:	  0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__addr_b);
+		ImGui::Text("started:	 0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__started);
 		ImGui::End();
 
 		// Trace/VCD window
