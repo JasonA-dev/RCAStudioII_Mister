@@ -63,6 +63,7 @@ end
 always @(posedge clk) begin
     if(b_ce) begin
         b_dout <= mem[b_addr];
+        //$display("b_dout %h b_addr %h", b_dout, b_addr);           
     end
     if(b_wr) begin
         mem[b_addr] <= b_din;

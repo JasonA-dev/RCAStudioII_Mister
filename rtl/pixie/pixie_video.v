@@ -19,31 +19,32 @@
 module pixie_video
 (
     // backend
-    input              clk,
-    input              reset, 
+    input               clk,
+    input               reset, 
 
-    output             csync,
-    output  reg        video,
+    output              csync,
+    output  reg         video,
 
-    output             VSync,
-    output             HSync,    
-    output             VBlank,
-    output             HBlank,
-    output             video_de,      
+    output              VSync,
+    output              HSync,    
+    output              VBlank,
+    output              HBlank,
+    output              video_de,      
 
     // frontend
-    input             clk_enable,
-    input       [1:0] SC,
-    input             disp_on,
-    input             disp_off,
-    input       [7:0] data_in,
+    input              clk_enable,
+    input        [1:0] SC,
+    input              disp_on,
+    input              disp_off,
+    input        [7:0] data_in,
 
-    output reg        DMAO,
-    output reg        INT,
-    output reg        EFx,
+    output reg         DMAO,
+    output reg         INT,
+    output reg         EFx,
 
-    output reg  [9:0] mem_addr,
-    output reg        mem_wr_en
+    output reg  [15:0] mem_addr,
+    output reg         mem_req,
+    input  reg         mem_ack    
 );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,45 +61,59 @@ parameter  vsync_start_line   = 2;
 parameter  vsync_height_lines = 6;  
 
 parameter  start_addr         = 'h0900;
-parameter  end_addr           = start_addr + 'h1ff;
+parameter  end_addr           = start_addr + 'hff;
+
+//PAL
+// interruptGraphicsMode_ = 74;
+// startGraphicsMode_     = 76;
+// endGraphicsMode_       = 267;
+// endScreen_             = 312;
+// videoHeight_           = 192;
+
+//NTSC
+// interruptGraphicsMode_ = 62;
+// startGraphicsMode_     = 64;
+// endGraphicsMode_       = 191;
+// endScreen_             = 262;
+// videoHeight_           = 128;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-reg  [7:0] pixel_shift_reg;
+reg   [7:0] pixel_shift_reg;
   
-reg  [7:0] horizontal_counter;
-reg        hsync;
-reg        advance_v;
+reg   [7:0] horizontal_counter;
+reg         hsync;
+reg         advance_v;
     
-reg  [8:0] vertical_counter;
-reg        vsync;
+reg   [8:0] vertical_counter;
+reg         vsync;
 
-reg  [8:0] new_v;
-reg  [7:0] new_h;
+reg   [8:0] new_v;
+reg   [7:0] new_h;
 
-reg        SC_fetch;
-reg        SC_execute;
-reg        SC_dma;
-reg        SC_interrupt;
+reg         SC_fetch;
+reg         SC_execute;
+reg         SC_dma;
+reg         SC_interrupt;
 
-reg        enabled;
+reg         enabled;
 
-reg        DMA_xfer;
-reg  [9:0] addr_counter;
+reg         DMA_xfer;
+reg   [9:0] addr_counter;
 
-reg  [7:0] byte_cache[8];
-reg  [7:0] byte_counter = 0;
-reg  [7:0] row_counter;
-reg  [7:0] cycle_counter;
-reg  [7:0] vram_addr = start_addr;
-reg        advance_addr;
+reg   [7:0] row_cache[8];
+reg   [7:0] row_cache_counter;
+reg         row_cache_ready;
+
+reg   [7:0] cycle_counter;
+reg  [15:0] vram_addr = start_addr;
+reg         advance_addr;
 
 ////////////////////////// assignments  ////////////////////////////////////////////////////////////////////////////////
 
 assign DMAO      = (enabled && VBlank==1'b0 && horizontal_counter >= 1 && horizontal_counter < 9) ? 1'b0 : 1'b1;
 assign DMA_xfer  = (enabled && SC_dma) ? 1'b1 : 1'b0;
 
-assign mem_addr  = addr_counter;
 assign mem_wr_en = DMA_xfer;
 
 assign csync     = ~(HSync ^ VSync);
@@ -124,74 +139,52 @@ always @(posedge clk) begin
     end
 end
 
-// new vram data loader
-always @(posedge clk) begin
-  if(advance_addr==1'b1) begin
-    advance_addr <= 0;
-    if(vram_addr < end_addr) 
-      vram_addr <= vram_addr + 1'd1;
-    else 
-      vram_addr <= start_addr;   
-  end    
-end
-
-// new vertical counter
-always @(posedge clk) begin
-  if(advance_v) begin
-    advance_v <= 0;
-    if (vertical_counter==(lines_per_frame-1))
-      new_v <= 1'd0;
-    else
-      new_v <= vertical_counter + 1'd1;
-
-    vertical_counter <= new_v;
-    //$display("vertical_counter: %h new_v: %h", vertical_counter, new_v);  
-  end
-  VSync <= (new_v < (vsync_start_line+vsync_height_lines)) ? 1'b1 : 1'b0;
-  VBlank <= (vertical_counter   < 64 || vertical_counter   > 192) ? 1'b1 : 1'b0;  // 128 lines for NTSC  
-end
-
-// new horizontal counter
+// 1. Read 8 bytes from vram into row cache
 always @(negedge clk) begin
-  if (horizontal_counter == (pixels_per_line-1)) begin
-    new_h <= 1'd0;
-    advance_v <= 1'b1;
-  end
-  else begin
-    new_h <= horizontal_counter + 1'd1;
-  end
+    if (enabled) begin
+        // if at end of display, reset regs
+        if (vram_addr == end_addr) begin
+            vram_addr <= start_addr;
+            row_cache_counter <= 0;
+            row_cache_ready <= 1'b0;            
+            //$display("vram_addr == end_addr");                       
+        end
+        else begin
+          // reset row cache counter if at 8
+          if (row_cache_counter == 8) begin
+            row_cache_counter <= 0;
+            row_cache_ready <= 1'b1;
 
-  if(horizontal_counter[2:0]== 3'b000 && HBlank==1'b0) begin
-    advance_addr <= 1'b1;
-    byte_cache[byte_counter] <= data_in;
-    byte_counter <= byte_counter + 1'd1;    
-    //$display("new_h[2:0]== 3'b000 advance_addr: %h, vram_addr %h HBlank %h", advance_addr, vram_addr, HBlank);
-  end
+            mem_req <= 1'b0;  
+            //$display("row_cache_counter == 8");                          
+          end
+          else begin
+            // load 8 bytes from vram into row cache    
+            row_cache[row_cache_counter] <= data_in;            
+            row_cache_counter <= row_cache_counter + 1;
+            row_cache_ready <= 1'b0;
 
-  horizontal_counter <= new_h;
-  //$display("horizontal_counter: %h new_h: %h", horizontal_counter, new_h);
-  HSync <= (new_h < (hsync_start_pixel+hsync_width_pixels)) ? 1'b1 : 1'b0;  
-  HBlank <= (horizontal_counter < 18 || horizontal_counter > 82)  ? 1'b1 : 1'b0;  // 64 pixels wide
-end
+            vram_addr <= vram_addr + 1;
 
-always @(posedge clk) begin
-    if(clk_enable) begin
-      EFx <= ((vertical_counter >=60 && vertical_counter < 65) || (vertical_counter >= 188 && vertical_counter < 193)) ? 1'b0 : 1'b1;
-      INT <= (vertical_counter >= 62 && vertical_counter < 65)  ? 1'b1 : 1'b0;
+            mem_addr <= vram_addr;
+            mem_req <= 1'b1;    
+            //$display("load 8 bytes from vram into row cache: vram_addr %h data_in %h", vram_addr, data_in);                        
+          end
+        end
     end
 end
 
-//pixel_shifter_p
-always @(posedge clk) begin
-    if (advance_v) 
-        pixel_shift_reg <= byte_cache[byte_counter];
-    else if (reset)
-        pixel_shift_reg <= 0;
-    else 
-        pixel_shift_reg <= {pixel_shift_reg[6:0], 1'b0};        
-    
-    if(video_de)
-        video <= pixel_shift_reg[7];   
+// 2. Once the line is in cache, start to process it
+always @(negedge clk) begin
+    if(row_cache_ready) begin
+    end
+end
+// 3. Each byte in row cache is read and output to video
+always @(negedge clk) begin
+end
+
+// 4. Repeat until all vram is read
+always @(negedge clk) begin
 end
 
 endmodule

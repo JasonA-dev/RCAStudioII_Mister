@@ -52,41 +52,43 @@ wire   EFx;
 wire   Locked;
 
 wire vram_rd;
+reg vram_ack;
+
 pixie_dp pixie_dp (
     // front end, CDP1802 bus clock domain
-    .clk(clk_sys),        // I
-    .reset(reset),        // I
-    .clk_enable(ce_pix),  // I      
+    .clk        (clk_sys),    // I
+    .reset      (reset),      // I
+    .clk_enable (ce_pix),     // I      
 
-    .SC(SC),              // I [1:0]
-    .disp_on(io_n[0]),    // I
-    .disp_off(~io_n[0]),  // I 
+    .SC         (SC),         // I [1:0]
+    .disp_on    (io_n[0]),    // I
+    .disp_off   (~io_n[0]),   // I 
 
-    .data_addr(),         // O [9:0]
-    .data_rd(vram_rd),    // O    
-    .data_in(video_din),  // I [7:0]    
+    .data_addr  (vram_addr),  // O [9:0]
+    .data_rd    (vram_rd),    // O    
+    .data_in    (video_din),  // I [7:0]    
+    .data_ack   (vram_ack),   // I
 
-    .DMAO(DMAO),          // O
-    .INT(INT),            // O
-    .EFx(EFx),            // O
+    .DMAO       (DMAO),       // O
+    .INT        (INT),        // O
+    .EFx        (EFx),        // O
 
     // back end, video clock domain
-    .video_clk(clk_sys),  // I
-    .csync(),             // O
-    .video(video),        // O
+    .video_clk  (clk_sys),    // I
+    .csync      (),           // O
+    .video      (video),      // O
 
-    .VSync(VSync),        // O
-    .HSync(HSync),        // O
-    .VBlank(VBlank),      // O
-    .HBlank(HBlank),      // O
-    .video_de(video_de)   // O    
+    .VSync      (VSync),      // O
+    .HSync      (HSync),      // O
+    .VBlank     (VBlank),     // O
+    .HBlank     (HBlank),     // O
+    .video_de   (video_de)    // O    
 );
 
 ////////////////// KEYPAD //////////////////////////////////////////////////////////////////
 
-reg [7:0] btnKP1 = 'hff;
-reg [7:0] btnKP2 = 'hff;
-
+reg  [7:0] btnKP1  = 'hff;
+reg  [7:0] btnKP2  = 'hff;
 wire       pressed = ps2_key[9];
 wire [7:0] code    = ps2_key[7:0];
 always @(posedge clk_sys) begin
@@ -128,13 +130,13 @@ always @(posedge clk_sys) begin
       EF <= 4'b1111;
 end
 
-reg [7:0] cpu_din;
-reg [7:0] cpu_dout;
-wire Q;
-wire unsupported;
+reg  [7:0] cpu_din;
+reg  [7:0] cpu_dout;
+wire       Q;
+wire       unsupported;
 wire [2:0] io_n;
-wire io_inp;
-wire io_out;
+wire       io_inp;
+wire       io_out;
 
 reg [15:0] cpu_ram_addr;
 reg  [7:0] cpu_ram_din;
@@ -146,11 +148,11 @@ reg dma_in_req  = 1'b0;
 reg dma_out_req = 1'b0;
 
 cdp1802 cdp1802 (
-  .CLOCK    (clk_sys),
-  .CLEAR_N  (~reset),
+  .CLOCK        (clk_sys),
+  .CLEAR_N      (~reset),
 
-  .Q        (Q),        // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
-  .EF       (EF),       // I 3:0 external flags EF1 to EF4
+  .Q            (Q),        // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
+  .EF           (EF),       // I 3:0 external flags EF1 to EF4
 
   .WAIT_N       (wait_req),
   .INT_N        (INT_N),
@@ -158,19 +160,19 @@ cdp1802 cdp1802 (
   .dma_out_req  (dma_out_req),
   .SC           (SC),
 
-  .io_din   (cpu_din),     
-  .io_dout  (cpu_dout),    
-  .io_n     (io_n),     // O 2:0 IO control lines: N2,N1,N0  (N0 used for display on/off)
-  .io_inp   (io_inp),   // O IO input signal
-  .io_out   (io_out),   // O IO output signal
+  .io_din       (cpu_din),     
+  .io_dout      (cpu_dout),    
+  .io_n         (io_n),     // O 2:0 IO control lines: N2,N1,N0  (N0 used for display on/off)
+  .io_inp       (io_inp),   // O IO input signal
+  .io_out       (io_out),   // O IO output signal
 
-  .unsupported(unsupported),
+  .unsupported  (unsupported),
 
-  .ram_rd (ram_rd),       // O
-  .ram_wr (ram_wr),       // O
-  .ram_a  (ram_a),        // O cpu_ram_addr
-  .ram_q  (ram_q),        // I DI
-  .ram_d  (ram_d)         // O cpu_ram_dout
+  .ram_rd       (ram_rd),       // O
+  .ram_wr       (ram_wr),       // O
+  .ram_a        (ram_a),        // O cpu_ram_addr
+  .ram_q        (ram_q),        // I DI
+  .ram_d        (ram_d)         // O cpu_ram_dout
 );
 
 /*
@@ -196,16 +198,15 @@ cosmac cosmac (
 
 ////////////////// RAM //////////////////////////////////////////////////////////////////
 
-reg ram_cs;
-
+reg          ram_cs;
 reg          ram_rd; // RAM read enable
 reg          ram_wr; // RAM write enable
 reg   [7:0]  ram_d;  // RAM write data
 reg  [15:0]  ram_a;  // RAM address
 reg   [7:0]  ram_q;  // RAM read data
 
-wire  [7:0]   romDo_StudioII;
-wire [11:0]   romA;
+wire  [7:0]  romDo_StudioII;
+wire [11:0]  romA;
 
 rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
 (
@@ -224,11 +225,11 @@ dpram #(.ADDR(12)) dpram (
 	.a_dout (ram_q),          // O dpram_dout
 	.a_addr (ram_a),          // I AB
 
-	.b_ce   (ioctl_download), // I
-	.b_wr   (ioctl_wr),       // I
-	.b_din  (ioctl_dout),     // I
-	.b_dout (),               // O
-	.b_addr ((ioctl_index==0) ? ioctl_addr : (16'h0400 + ioctl_addr)) // I
+	.b_ce   (portb_ce),       // I
+	.b_wr   (portb_wr),       // I
+	.b_din  (portb_din),      // I
+	.b_dout (portb_dout),     // O
+	.b_addr (portb_addr)      // I
 );
 
 ////////////////// DMA //////////////////////////////////////////////////////////////////
@@ -268,17 +269,53 @@ always @(negedge clk_sys) begin
 end
 */
 
+/*
 always @(negedge clk_sys) begin
   if (vram_cs && ram_wr) begin
     video_din <= ram_d;
+    //$display("ram_d %x ram_a %x video_din %x", ram_d, ram_a, video_din);    
   end
   else begin
     video_din <= 8'd0;
   end
-  
   DI <= ram_d;
-   // $display("cpu_ram_dout %x ram_a %x video_din %x", cpu_ram_dout, ram_a, video_din);
+end
+*/
 
+/*
+always @(negedge clk_sys) begin
+    if(vram_rd) begin
+      portb_ce <= 1'b1;
+      portb_addr <= vram_addr;
+      video_din <= portb_dout;
+      //$display("portb_addr %h video_din %h", portb_addr, video_din);          
+    end
+    else begin
+      portb_ce <= 1'b0;
+      //$display("portb_ce %h", portb_ce);          
+    end
+end
+*/
+
+reg        portb_ce;
+reg        portb_wr;
+reg  [7:0] portb_din;
+reg  [7:0] portb_dout;
+reg [15:0] portb_addr;
+
+always @(negedge clk_sys) begin
+  if(ioctl_download) begin
+    portb_ce   <= ioctl_download;
+    portb_wr   <= ioctl_wr;
+    portb_din  <= ioctl_dout;
+    portb_addr <= ioctl_index==0 ? ioctl_addr : (16'h0400 + ioctl_addr);
+  end
+  else if(vram_cs) begin
+    portb_ce   <= vram_cs;
+    portb_wr   <= 1'b0;
+    video_din  <= portb_dout;
+    portb_addr <= vram_addr;
+  end
 end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)

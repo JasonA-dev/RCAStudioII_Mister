@@ -325,8 +325,8 @@ int main(int argc, char** argv, char** env) {
 		//ImGui::Begin("Pixie FB");
 		//mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_frame_buffer__DOT__ram, 4096, 0);		
 		//ImGui::End();
-		ImGui::Begin("Pixie Byte Cache");
-		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__byte_cache, 8, 0);		
+		ImGui::Begin("Pixie Row Cache");
+		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__row_cache, 8, 0);		
 		ImGui::End();
 
 		// Debug 1802 cpu

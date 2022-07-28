@@ -19,32 +19,33 @@
 module pixie_dp 
 (
     // front end, CDP1802 bus clock domain
-    input         clk,
-    input         reset,  
-    input         clk_enable,
+    input             clk,
+    input             reset,  
+    input             clk_enable,
 
-    input   [1:0] SC,         
-    input         disp_on,
-    input         disp_off,
+    input       [1:0] SC,         
+    input             disp_on,
+    input             disp_off,
 
-    input   [7:0] data_in,     
+    input       [7:0] data_in,     
     output reg [15:0] data_addr,
-    output        data_rd,
+    output            data_rd,
+    input             data_ack,
 
-    output        DMAO,     
-    output        INT,     
-    output        EFx,
+    output            DMAO,     
+    output            INT,     
+    output            EFx,
 
     // back end, video clock domain
-    input         video_clk,
-    output        csync,     
-    output        video,
+    input             video_clk,
+    output            csync,     
+    output            video,
 
-    output        VSync,
-    output        HSync,    
-    output        VBlank,
-    output        HBlank,
-    output        video_de  
+    output            VSync,
+    output            HSync,    
+    output            VBlank,
+    output            HBlank,
+    output            video_de  
 );
 
 pixie_video pixie_video (
@@ -61,18 +62,19 @@ pixie_video pixie_video (
     .video_de   (video_de),     // O
 
     // frontend
-    .clk_enable(clk_enable),    // I
-    .SC(SC),                    // I [1:0]
-    .disp_on(disp_on),          // I
-    .disp_off(disp_off),        // I
-    .data_in(data_in),          // I [7:0]
+    .clk_enable (clk_enable),   // I
+    .SC         (SC),           // I [1:0]
+    .disp_on    (disp_on),      // I
+    .disp_off   (disp_off),     // I
+    .data_in    (data_in),      // I [7:0]
 
-    .DMAO(DMAO),                // O
-    .INT(INT),                  // O
-    .EFx(EFx),                  // O
+    .DMAO       (DMAO),         // O
+    .INT        (INT),          // O
+    .EFx        (EFx),          // O
 
-    .mem_addr(data_addr),       // O [9:0]
-    .mem_wr_en(data_rd)         // O
+    .mem_addr   (data_addr),    // O [9:0]
+    .mem_req    (data_rd),      // O
+    .mem_ack    (data_ack)      // O    
 );
 
 endmodule
