@@ -46,15 +46,15 @@ wire        Disp_Off;
 reg  [1:0]  SC = 2'b10;
 reg  [7:0]  video_din;
 
-wire   INT;
-wire   DMAO;
-wire   EFx;
-wire   Locked;
+wire        INT;
+wire        DMAO;
+wire        EFx;
+wire        Locked;
 
-wire vram_rd;
-reg vram_ack;
+wire        vram_rd;
+reg         vram_ack;
 
-pixie_dp pixie_dp (
+pixie_video pixie_video (
     // front end, CDP1802 bus clock domain
     .clk        (clk_sys),    // I
     .reset      (reset),      // I
@@ -151,8 +151,8 @@ cdp1802 cdp1802 (
   .CLOCK        (clk_sys),
   .CLEAR_N      (~reset),
 
-  .Q            (Q),        // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
-  .EF           (EF),       // I 3:0 external flags EF1 to EF4
+  .Q            (Q),            // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
+  .EF           (EF),           // I 3:0 external flags EF1 to EF4
 
   .WAIT_N       (wait_req),
   .INT_N        (INT_N),
@@ -162,9 +162,9 @@ cdp1802 cdp1802 (
 
   .io_din       (cpu_din),     
   .io_dout      (cpu_dout),    
-  .io_n         (io_n),     // O 2:0 IO control lines: N2,N1,N0  (N0 used for display on/off)
-  .io_inp       (io_inp),   // O IO input signal
-  .io_out       (io_out),   // O IO output signal
+  .io_n         (io_n),         // O 2:0 IO control lines: N2,N1,N0  (N0 used for display on/off)
+  .io_inp       (io_inp),       // O IO input signal
+  .io_out       (io_out),       // O IO output signal
 
   .unsupported  (unsupported),
 
@@ -227,6 +227,7 @@ dpram #(.ADDR(12)) dpram (
 
 	.b_ce   (portb_ce),       // I
 	.b_wr   (portb_wr),       // I
+	.b_ack  (portb_ack),      // O  
 	.b_din  (portb_din),      // I
 	.b_dout (portb_dout),     // O
 	.b_addr (portb_addr)      // I
@@ -269,41 +270,14 @@ always @(negedge clk_sys) begin
 end
 */
 
-/*
-always @(negedge clk_sys) begin
-  if (vram_cs && ram_wr) begin
-    video_din <= ram_d;
-    //$display("ram_d %x ram_a %x video_din %x", ram_d, ram_a, video_din);    
-  end
-  else begin
-    video_din <= 8'd0;
-  end
-  DI <= ram_d;
-end
-*/
-
-/*
-always @(negedge clk_sys) begin
-    if(vram_rd) begin
-      portb_ce <= 1'b1;
-      portb_addr <= vram_addr;
-      video_din <= portb_dout;
-      //$display("portb_addr %h video_din %h", portb_addr, video_din);          
-    end
-    else begin
-      portb_ce <= 1'b0;
-      //$display("portb_ce %h", portb_ce);          
-    end
-end
-*/
-
 reg        portb_ce;
 reg        portb_wr;
 reg  [7:0] portb_din;
 reg  [7:0] portb_dout;
 reg [15:0] portb_addr;
-
-always @(negedge clk_sys) begin
+always @(posedge clk_sys) begin
+  portb_ce  <= 1'b0;
+  portb_wr   <= 1'b0;
   if(ioctl_download) begin
     portb_ce   <= ioctl_download;
     portb_wr   <= ioctl_wr;
@@ -312,10 +286,15 @@ always @(negedge clk_sys) begin
   end
   else if(vram_cs) begin
     portb_ce   <= vram_cs;
-    portb_wr   <= 1'b0;
-    video_din  <= portb_dout;
     portb_addr <= vram_addr;
   end
+end
+
+always @(posedge clk_sys) begin
+  if(portb_ack) begin
+    video_din  <= portb_dout; 
+  end
+  vram_ack <= portb_ack;   
 end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)

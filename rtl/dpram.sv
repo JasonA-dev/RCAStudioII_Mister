@@ -28,6 +28,7 @@ module dpram #(
     // Port A
     input   wire                a_ce,    
     input   wire                a_wr,
+    output  wire                a_ack,      
     input   wire    [ADDR-1:0]  a_addr,
     input   wire    [DATA-1:0]  a_din,
     output  logic   [DATA-1:0]  a_dout,
@@ -35,6 +36,7 @@ module dpram #(
     // Port B
     input   wire                b_ce,    
     input   wire                b_wr,
+    output  wire                b_ack,    
     input   wire    [ADDR-1:0]  b_addr,
     input   wire    [DATA-1:0]  b_din,
     output  logic   [DATA-1:0]  b_dout
@@ -61,9 +63,11 @@ end
 
 // Port B
 always @(posedge clk) begin
+    b_ack <= 1'b0;
     if(b_ce) begin
         b_dout <= mem[b_addr];
-        //$display("b_dout %h b_addr %h", b_dout, b_addr);           
+        b_ack <= 1'b1;        
+        //$display("b_dout %h b_dout %h b_addr %h", b_ack, b_dout, b_addr);           
     end
     if(b_wr) begin
         mem[b_addr] <= b_din;

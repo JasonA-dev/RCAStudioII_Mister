@@ -60,8 +60,8 @@ V_SRC = \
 	$(RTL)/dpram.sv \
 	$(RTL)/dma.v \		
 	$(RTL)/rom.v \
-	$(RTL)/pixie/pixie_video.v \
-	$(RTL)/pixie/pixie_dp.v
+	$(RTL)/pixie/pixie_video_studioii.v \
+	$(RTL)/pixie/pixie_video.v
 
 C_SRC = \
 	sim_main.cpp  \

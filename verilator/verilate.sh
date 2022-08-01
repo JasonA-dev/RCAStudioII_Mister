@@ -11,5 +11,5 @@ verilator \
 ../rtl/dma.v \
 ../rtl/rom.v \
 ../rtl/cdp1861.v \
-../rtl/pixie/pixie_video.v \
-../rtl/pixie/pixie_dp.v
+../rtl/pixie/pixie_video_studioii.v \
+../rtl/pixie/pixie_video.v

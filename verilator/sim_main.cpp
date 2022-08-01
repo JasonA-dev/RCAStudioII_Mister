@@ -89,7 +89,7 @@ double sc_time_stamp() {	// Called by $time in Verilog.
 
 int clk_sys_freq = 48000000;
 SimClock clk_48(1); 
-//SimClock clk_24(2); 
+SimClock clk_24(2); 
 
 // VCD trace logging
 // -----------------
@@ -127,7 +127,7 @@ SimAudio audio(clk_sys_freq, true);
 void resetSim() {
 	main_time = 0;
 	clk_48.Reset();
-	//clk_24.Reset();
+	clk_24.Reset();
 }
 
 int verilate() {
@@ -141,11 +141,11 @@ int verilate() {
 
 		// Clock dividers
 		clk_48.Tick();
-		//clk_24.Tick();
+		clk_24.Tick();
 
 		// Set clocks in core
 		top->clk_48 = clk_48.clk;
-		//top->clk_24 = clk_24.clk;
+		top->clk_24 = clk_24.clk;
 
 		// Simulate both edges of fastest clock
 		if (clk_48.clk != clk_48.old) {
@@ -325,8 +325,8 @@ int main(int argc, char** argv, char** env) {
 		//ImGui::Begin("Pixie FB");
 		//mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_dp_frame_buffer__DOT__ram, 4096, 0);		
 		//ImGui::End();
-		ImGui::Begin("Pixie Row Cache");
-		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__row_cache, 8, 0);		
+		ImGui::Begin("Pixie Studio II Row Cache");
+		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__row_cache, 8, 0);		
 		ImGui::End();
 
 		// Debug 1802 cpu
@@ -365,49 +365,56 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Spacing();		
 		ImGui::End();
 
-		// Debug Pixie DP
-		ImGui::Begin("Pixie DP");
-		ImGui::Text("clk_enable:    0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__clk_enable);		
-		ImGui::Text("disp_on:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__disp_on);	
-		ImGui::Text("disp_off:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__disp_off);
-		ImGui::Text("data_in:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__data_in);
+		// Debug Pixie Video
+		ImGui::Begin("Pixie Video");
+		ImGui::Text("clk_enable:    0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__clk_enable);		
+		ImGui::Text("disp_on:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__disp_on);	
+		ImGui::Text("disp_off:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__disp_off);
+		ImGui::Spacing();			
+		ImGui::Text("data_in:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_in);
+		ImGui::Text("data_addr:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_addr);
+		ImGui::Text("data_rd:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_rd);
+		ImGui::Text("data_ack:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_ack);				
 		ImGui::Spacing();	
-		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__INT);
-		ImGui::Text("DMAO:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__DMAO);
-		ImGui::Text("EFx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__EFx);
+		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__INT);
+		ImGui::Text("DMAO:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__DMAO);
+		ImGui::Text("EFx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__EFx);
 		ImGui::Spacing();
-		ImGui::Text("csync:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__csync);
-		ImGui::Text("video:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__video);
+		ImGui::Text("csync:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__csync);
+		ImGui::Text("video:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__video);
 		ImGui::Spacing();
-		ImGui::Text("VSync:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__VSync);
-		ImGui::Text("HSync:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__HSync);
-		ImGui::Text("VBlank:        0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__VBlank);
-		ImGui::Text("HBlank:        0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__HBlank);
-		ImGui::Text("video_de:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__video_de);								
+		ImGui::Text("VSync:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__VSync);
+		ImGui::Text("HSync:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__HSync);
+		ImGui::Text("VBlank:        0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__VBlank);
+		ImGui::Text("HBlank:        0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__HBlank);
+		ImGui::Text("video_de:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__video_de);								
 		ImGui::End();
 
-		ImGui::Begin("Pixie Video");
-		ImGui::Text("enabled:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__enabled);			
-		ImGui::Text("disp_on:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__disp_on);	
-		ImGui::Text("disp_off:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__disp_off);
-		ImGui::Text("SC:            0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__SC);		
-		ImGui::Text("data_in:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__data_in);
-		ImGui::Text("DMAO:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__DMAO);	
-		ImGui::Text("DMA_xfer:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__DMA_xfer);			
-		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__INT);	
-		ImGui::Text("EFx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__EFx);							
+		ImGui::Begin("Pixie Video Studio II");
+		ImGui::Text("enabled:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__enabled);			
+		ImGui::Text("disp_on:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__disp_on);	
+		ImGui::Text("disp_off:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__disp_off);
+		ImGui::Text("SC:            0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__SC);		
+		ImGui::Text("data_in:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__data_in);
+		ImGui::Text("DMAO:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__DMAO);	
+		ImGui::Text("DMA_xfer:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__DMA_xfer);			
+		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__INT);	
+		ImGui::Text("EFx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__EFx);							
 		ImGui::Spacing();	
-		ImGui::Text("mem_addr:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__mem_addr);
-		ImGui::Text("mem_wr_en:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__mem_wr_en);
+		ImGui::Text("mem_addr:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_addr);
+		ImGui::Text("mem_wr_en:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_wr_en);
+		ImGui::Text("mem_req:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_req);
+		ImGui::Text("mem_ack:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_ack);
 		ImGui::Spacing();	
-		ImGui::Text("horizontal_counter: 0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__horizontal_counter);
-		ImGui::Text("vertical_counter:   0x%04X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__vertical_counter);
+		ImGui::Text("horizontal_counter: 0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__horizontal_counter);
+		ImGui::Text("vertical_counter:   0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__vertical_counter);
+		ImGui::Text("pixel_shift_reg:    0x%08X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__pixel_shift_reg);		
 		ImGui::Spacing();	
-		ImGui::Text("new_h:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__new_h);
-		ImGui::Text("new_v:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__new_v);						
-		ImGui::Text("HSync:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__HSync);
-		ImGui::Text("VSync:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__VSync);
-		ImGui::Text("video_de:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_dp__DOT__pixie_video__DOT__video_de);								
+		ImGui::Text("new_h:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__new_h);
+		ImGui::Text("new_v:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__new_v);						
+		ImGui::Text("HSync:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__HSync);
+		ImGui::Text("VSync:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__VSync);
+		ImGui::Text("video_de:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__video_de);								
 		ImGui::End();
 /*
 		// Debug Pixie FE
