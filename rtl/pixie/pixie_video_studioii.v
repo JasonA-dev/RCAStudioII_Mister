@@ -53,12 +53,12 @@ parameter  pixels_per_line    = 112; // (14bytes x 8bits, constant for all 1861'
 parameter  bytes_per_line     = 14;  // 
 parameter  active_h_pixels    = 64;  // (studio2 has 64 active pixels per visible horizontal row) 
 parameter  hsync_start_pixel  = 2;   // two cycles later to account for pipeline delay
-parameter  hsync_width_pixels = 12;  
+parameter  hsync_width_pixels = 12;  // 
 
 parameter  lines_per_frame    = 262; // (constant for all 1861's) 
 parameter  active_v_lines     = 128; // (NTSC (PAL is 192. There is no PAL natively on StudioII))
 parameter  vsync_start_line   = 2;  
-parameter  vsync_height_lines = 6;  // 
+parameter  vsync_height_lines = 6;   // 
 
 parameter  start_addr         = 'h0900;
 parameter  end_addr           = start_addr + 'hff;
@@ -109,6 +109,8 @@ reg   [7:0] cycle_counter;
 reg  [15:0] vram_addr = start_addr;
 reg         advance_addr;
 
+reg         start_pixel = 1'b0;
+
 ////////////////////////// assignments  ////////////////////////////////////////////////////////////////////////////////
 
 assign DMAO      = (enabled && VBlank==1'b0 && horizontal_counter >= 1 && horizontal_counter < 9) ? 1'b0 : 1'b1;
@@ -140,23 +142,29 @@ always @(posedge clk) begin
 end
 
 // State machine constants
-localparam SM_LOAD_CACHE = 0;
-localparam SM_OUTPUT_VIDEO = 1;
-reg [7:0] state = SM_LOAD_CACHE;
+localparam SM_INIT = 0;
+localparam SM_LOAD_CACHE = 1;
+localparam SM_OUTPUT_VIDEO = 2;
+reg [7:0] state = SM_INIT;
 
 reg [7:0] nbit;
 reg [7:0] byte_counter;
 reg load_byte = 1'b1;
-always @(negedge clk) begin
-    if (enabled && video_de) begin
+reg [3:0] line_repeat_counter = 3'd0;
+always @(posedge clk) begin
       case (state)
+        SM_INIT: begin
+          if(start_pixel)
+            state <= SM_LOAD_CACHE;
+          end
         SM_LOAD_CACHE:
           begin
             // if at end of display, reset regs
-            if (vram_addr == end_addr+1) begin
+            if (vram_addr == end_addr) begin
                 vram_addr <= start_addr;
                 row_cache_counter <= 0;
                 row_cache_ready <= 1'b0;    
+                state <= SM_INIT;                   
             end
             else begin
               // reset row cache counter if at 8
@@ -181,14 +189,14 @@ always @(negedge clk) begin
           end   
         SM_OUTPUT_VIDEO:     
           begin
+            if (enabled) begin            
               if(load_byte == 1'b1) begin
                 // load a byte from row_cache into pixel_shift_reg
                 pixel_shift_reg <= row_cache[byte_counter];
                 load_byte <= 1'b0;
                 end
               else begin
-                // output the bit to video
-                video <= pixel_shift_reg[7];   
+                // pixel_shift_reg for next cycle
                 pixel_shift_reg <= pixel_shift_reg << 1;
 
                 // advance the bit & byte counters
@@ -201,33 +209,48 @@ always @(negedge clk) begin
 
                 // when all done return to load cache state  
                 if(byte_counter == 8'd7) begin
-                  byte_counter <= 8'd0;           
-                  state <= SM_LOAD_CACHE;
+                  byte_counter <= 8'd0;  
+
+                  // RCA Studio II repeats each horizontal line 4 times
+                  line_repeat_counter <= line_repeat_counter + 1'd1;                    
+                  if (line_repeat_counter == 3'd3) begin
+                    line_repeat_counter <= 3'd0;
+                    state <= SM_LOAD_CACHE;
+                  end  
                 end
+              end
             end
           end
       endcase
-    end
+
+      if(new_h == 16 && new_v == 64) begin
+        start_pixel <= 1'b1;
+      end
+      else begin
+        start_pixel <= 1'b0;
+      end
 end
 
+assign video = pixel_shift_reg[7]; 
+
 // Create HSync and HBlank
-always @(negedge clk) begin
+always @(posedge clk) begin
   if (horizontal_counter == (pixels_per_line-1)) begin
     new_h <= 1'd0;
     advance_v <= 1'b1;
   end
   else begin
-    new_h <= horizontal_counter + 1'd1;    // d1
+    new_h <= horizontal_counter + 1'd1;
   end
 
   horizontal_counter <= new_h;
   HSync <= (new_h < (hsync_start_pixel+hsync_width_pixels)) ? 1'b1 : 1'b0;  
-  HBlank <= (new_h < 18 || new_h > 82)  ? 1'b1 : 1'b0;  // 64 pixels wide
+  HBlank <= (new_h < 16 || new_h > 80)  ? 1'b1 : 1'b0;  // 64 pixels wide
   //$display("horizontal_counter %d HSync %h HBlank %h", horizontal_counter, HSync, HBlank);
 end
 
 // Create VSync and VBlank
-always @(negedge clk) begin
+always @(posedge clk) begin
   if(advance_v) begin
     advance_v <= 1'b0;
     if (vertical_counter==(lines_per_frame-1))
@@ -241,13 +264,9 @@ always @(negedge clk) begin
   VSync <= (new_v < (vsync_start_line+vsync_height_lines)) ? 1'b1 : 1'b0;
   VBlank <= (new_v < 64 || new_v > 192) ? 1'b1 : 1'b0;  // 128 lines for NTSC  
   //$display("vertical_counter %d VSync %h VBlank %h", vertical_counter, VSync, VBlank);
-end
 
-always @(negedge clk) begin
-    if(clk_enable) begin
-      EFx <= ((new_v >=60 && new_v < 65) || (new_v >= 188 && new_v < 193)) ? 1'b0 : 1'b1;  // OK
-      INT <= (new_v == 62)  ? 1'b1 : 1'b0;
-    end
+  EFx <= ((new_v >=60 && new_v < 65) || (new_v >= 193 && new_v < 194)) ? 1'b0 : 1'b1;  // TODO check again
+  INT <= (new_v == 62) ? 1'b1 : 1'b0;  // TODO check again
 end
 
 endmodule
