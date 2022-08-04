@@ -328,6 +328,9 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Begin("Pixie Studio II Row Cache");
 		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__row_cache, 8, 0);		
 		ImGui::End();
+		ImGui::Begin("Pixie Studio II Frame Buffer");
+		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__frame_buffer, 256, 0);		
+		ImGui::End();
 
 		// Debug 1802 cpu
 		ImGui::Begin("CDP 1802 Registers");
@@ -373,7 +376,6 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Spacing();			
 		ImGui::Text("data_in:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_in);
 		ImGui::Text("data_addr:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_addr);
-		ImGui::Text("data_rd:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_rd);
 		ImGui::Text("data_ack:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_ack);				
 		ImGui::Spacing();	
 		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__INT);
@@ -391,7 +393,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::End();
 
 		ImGui::Begin("Pixie Video Studio II");
-		ImGui::Text("enabled:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__enabled);			
+		ImGui::Text("enabled:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__display_enabled);			
 		ImGui::Text("disp_on:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__disp_on);	
 		ImGui::Text("disp_off:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__disp_off);
 		ImGui::Text("SC:            0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__SC);		
@@ -403,7 +405,6 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Spacing();	
 		ImGui::Text("mem_addr:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_addr);
 		ImGui::Text("mem_wr_en:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_wr_en);
-		ImGui::Text("mem_req:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_req);
 		ImGui::Text("mem_ack:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_ack);
 		ImGui::Spacing();	
 		ImGui::Text("horizontal_counter: 0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__horizontal_counter);
@@ -487,20 +488,20 @@ int main(int argc, char** argv, char** env) {
 		ImGui::End();
 
 		// Debug DMA Top
-		ImGui::Begin("DMA Top");
-		ImGui::Text("rom_cs:	 0x%02X", top->top__DOT__rcastudio__DOT__rom_cs);	
-		ImGui::Text("cart_cs:	0x%02X", top->top__DOT__rcastudio__DOT__cart_cs);
-		ImGui::Text("pram_cs:	0x%02X", top->top__DOT__rcastudio__DOT__pram_cs);
-		ImGui::Text("vram_cs:	0x%02X", top->top__DOT__rcastudio__DOT__vram_cs);
-		ImGui::Text("mcart_cs:   0x%02X", top->top__DOT__rcastudio__DOT__mcart_cs);						
-		ImGui::Spacing();	
-		ImGui::Text("AB:		 0x%04X", top->top__DOT__rcastudio__DOT__AB);	
-		ImGui::Text("DO:	     0x%02X", top->top__DOT__rcastudio__DOT__DO);
-		ImGui::Text("pram_we:	0x%02X", top->top__DOT__rcastudio__DOT__pram_we);
-		ImGui::Text("vram_we:	0x%02X", top->top__DOT__rcastudio__DOT__vram_we);
-		ImGui::Text("dma_busy:   0x%02X", top->top__DOT__rcastudio__DOT__dma_busy);		
-		ImGui::Text("dma_write:  0x%02X", top->top__DOT__rcastudio__DOT__dma_write);														
-		ImGui::End();
+		//ImGui::Begin("DMA Top");
+		//ImGui::Text("rom_cs:	 0x%02X", top->top__DOT__rcastudio__DOT__rom_cs);	
+		//ImGui::Text("cart_cs:	0x%02X", top->top__DOT__rcastudio__DOT__cart_cs);
+		//ImGui::Text("pram_cs:	0x%02X", top->top__DOT__rcastudio__DOT__pram_cs);
+		//ImGui::Text("vram_cs:	0x%02X", top->top__DOT__rcastudio__DOT__vram_cs);
+		//ImGui::Text("mcart_cs:   0x%02X", top->top__DOT__rcastudio__DOT__mcart_cs);						
+		//ImGui::Spacing();	
+		//ImGui::Text("AB:		 0x%04X", top->top__DOT__rcastudio__DOT__AB);	
+		//ImGui::Text("DO:	     0x%02X", top->top__DOT__rcastudio__DOT__DO);
+		//ImGui::Text("pram_we:	0x%02X", top->top__DOT__rcastudio__DOT__pram_we);
+		//ImGui::Text("vram_we:	0x%02X", top->top__DOT__rcastudio__DOT__vram_we);
+		//ImGui::Text("dma_busy:   0x%02X", top->top__DOT__rcastudio__DOT__dma_busy);		
+		//ImGui::Text("dma_write:  0x%02X", top->top__DOT__rcastudio__DOT__dma_write);														
+		//ImGui::End();
 
 		// Debug Keypad 1
 		ImGui::Begin("Keypad 1");
@@ -516,7 +517,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("btnKP1_0: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_0);	*/						
 		ImGui::Spacing();														
 		ImGui::End();
-
+/*
 		// Debug DMA
 		ImGui::Begin("DMA");
 		ImGui::Text("rdy:	 	0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__rdy);	
@@ -537,7 +538,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("addr_b:	  0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__addr_b);
 		ImGui::Text("started:	 0x%02X", top->top__DOT__rcastudio__DOT__dma__DOT__started);
 		ImGui::End();
-
+*/
 		// Trace/VCD window
 		ImGui::Begin(windowTitle_Trace);
 		ImGui::SetWindowPos(windowTitle_Trace, ImVec2(0, 870), ImGuiCond_Once);

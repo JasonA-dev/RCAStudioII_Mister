@@ -29,7 +29,6 @@ module pixie_video
 
     input       [7:0] data_in,     
     output reg [15:0] data_addr,
-    output            data_rd,
     input             data_ack,
 
     output            DMAO,     
@@ -74,7 +73,6 @@ pixie_video_studioii pixie_video_studioii (
     .EFx        (EFx),          // O
 
     .mem_addr   (data_addr),    // O [9:0]
-    .mem_req    (data_rd),      // O
     .mem_ack    (data_ack)      // I    
 );
 

@@ -51,7 +51,7 @@ wire        DMAO;
 wire        EFx;
 wire        Locked;
 
-wire        vram_rd;
+reg         vram_rd;
 reg         vram_ack;
 
 pixie_video pixie_video (
@@ -65,7 +65,6 @@ pixie_video pixie_video (
     .disp_off   (~io_n[0]),   // I 
 
     .data_addr  (vram_addr),  // O [9:0]
-    .data_rd    (vram_rd),    // O    
     .data_in    (video_din),  // I [7:0]    
     .data_ack   (vram_ack),   // I
 
@@ -247,17 +246,19 @@ dpram #(.ADDR(12)) dpram (
 //                      so assume this is ROM for emulation purposes.
 //0E00-0FFF	Cartridge	  (MultiCart) Available for Cartridge games if required, probably isn't.
 
+/*
 wire rom_cs   = ram_a ==? 16'b0000_00xx_xxxx_xxxx;
 wire cart_cs  = ram_a ==? 16'b0000_01xx_xxxx_xxxx; 
 wire pram_cs  = ram_a ==? 16'b0000_1000_xxxx_xxxx; 
 wire vram_cs  = ram_a ==? 16'b0000_1001_xxxx_xxxx; 
 wire mcart_cs = ram_a ==? 16'b0000_101x_xxxx_xxxx; 
+*/
 
 reg  [15:0] vram_addr;
-wire [15:0] AB = dma_busy ? dma_addr : ram_a;
-wire  [7:0] DO = dma_busy ? dma_dout : ram_d;
-wire pram_we = pram_cs ? dma_busy ? ~dma_write : ~ram_wr : 1'b1;
-wire vram_we = vram_cs ? dma_busy ? ~dma_write : ~ram_wr : 1'b1;
+//wire [15:0] AB = dma_busy ? dma_addr : ram_a;
+//wire  [7:0] DO = dma_busy ? dma_dout : ram_d;
+//wire pram_we = pram_cs ? dma_busy ? ~dma_write : ~ram_wr : 1'b1;
+//wire vram_we = vram_cs ? dma_busy ? ~dma_write : ~ram_wr : 1'b1;
 
 /*
 always @(negedge clk_sys) begin
@@ -277,24 +278,19 @@ reg  [7:0] portb_dout;
 reg [15:0] portb_addr;
 always @(posedge clk_sys) begin
   portb_ce  <= 1'b0;
-  portb_wr   <= 1'b0;
+  portb_wr  <= 1'b0;
   if(ioctl_download) begin
     portb_ce   <= ioctl_download;
     portb_wr   <= ioctl_wr;
     portb_din  <= ioctl_dout;
     portb_addr <= ioctl_index==0 ? ioctl_addr : (16'h0400 + ioctl_addr);
   end
-  else if(vram_cs) begin
-    portb_ce   <= vram_cs;
+  else if(vram_addr >= 'h0900) begin
+    portb_ce   <= 1'b1;
     portb_addr <= vram_addr;
   end
-end
-
-always @(posedge clk_sys) begin
-  if(portb_ack) begin
-    video_din  <= portb_dout; 
-  end
-  vram_ack <= portb_ack;   
+  video_din <= portb_dout;        
+  vram_ack  <= portb_ack;  
 end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)
@@ -303,7 +299,7 @@ end
 // 0x48b = game 3
 // 0x48d = game 4
 // 0x48f = game 5
-
+/*
 wire        dma_rdy = DMAO;
 reg         dma_ctrl = 1'b1;
 reg  [15:0] dma_addr;
@@ -325,7 +321,7 @@ dma dma (
   .sel      (dma_sel),      // O
   .write    (dma_write)     // O
 );
-
+*/
 /////////////////////////////////////////////////////////////////////////////////////////
 
 endmodule

@@ -43,7 +43,6 @@ module pixie_video_studioii
     output reg         EFx,
 
     output reg  [15:0] mem_addr,
-    output reg         mem_req,
     input  reg         mem_ack    
 );
 
@@ -96,25 +95,26 @@ reg         SC_execute;
 reg         SC_dma;
 reg         SC_interrupt;
 
-reg         enabled;
+reg         display_enabled;
 
 reg         DMA_xfer;
-reg   [9:0] addr_counter;
 
 reg   [7:0] row_cache[8];
 reg   [7:0] row_cache_counter;
 reg         row_cache_ready;
 
-reg   [7:0] cycle_counter;
 reg  [15:0] vram_addr = start_addr;
 reg         advance_addr;
 
 reg         start_pixel = 1'b0;
 
+reg   [7:0] frame_buffer[256];
+reg  [15:0] fb_addr = start_addr;
+
 ////////////////////////// assignments  ////////////////////////////////////////////////////////////////////////////////
 
-assign DMAO      = (enabled && VBlank==1'b0 && horizontal_counter >= 1 && horizontal_counter < 9) ? 1'b0 : 1'b1;
-assign DMA_xfer  = (enabled && SC_dma) ? 1'b1 : 1'b0;
+assign DMAO      = (display_enabled && VBlank==1'b0 && horizontal_counter >= 1 && horizontal_counter < 9) ? 1'b0 : 1'b1;
+assign DMA_xfer  = (display_enabled && SC_dma) ? 1'b1 : 1'b0;
 
 assign mem_wr_en = DMA_xfer;
 
@@ -133,25 +133,62 @@ always @(posedge clk) begin
 
     if (clk_enable) begin
       if(reset)
-        enabled <= 1'b0;
+        display_enabled <= 1'b0;
       else if (disp_on)
-        enabled <= 1'b1;
+        display_enabled <= 1'b1;
       else if (disp_off)
-        enabled <= 1'b0;
+        display_enabled <= 1'b0;
     end
 end
-
-// State machine constants
-localparam SM_INIT = 0;
-localparam SM_LOAD_CACHE = 1;
-localparam SM_OUTPUT_VIDEO = 2;
-reg [7:0] state = SM_INIT;
 
 reg [7:0] nbit;
 reg [7:0] byte_counter;
 reg load_byte = 1'b1;
 reg [3:0] line_repeat_counter = 3'd0;
+
 always @(posedge clk) begin
+  if (vram_addr == end_addr+1) begin
+    vram_addr <= start_addr;
+  end
+end
+
+always @(negedge clk) begin
+  if(mem_ack) begin
+    frame_buffer[fb_addr-2] <= data_in;    
+    fb_addr <= vram_addr-start_addr;
+    mem_addr <= vram_addr;      
+    vram_addr <= vram_addr + 1;              
+  end
+
+  if(new_h == 16 && new_v == 64) begin
+    start_pixel <= 1'b1;
+  end
+  else begin
+    start_pixel <= 1'b0;
+  end
+end
+
+reg [15:0] row_number = 0;
+always @(posedge clk) begin
+  // read a row from frame buffer
+  if(start_pixel) begin
+    row_cache[row_cache_counter+row_number] <= frame_buffer[row_cache_counter+row_number];
+
+    if (row_cache_counter == 7) begin
+      row_cache_counter <= 0;
+      row_number <= row_number + 8;
+    end  
+
+    row_cache_counter <= row_cache_counter + 1;
+    if (row_number == 256) begin
+      row_number <= 0;
+    end     
+  end
+end
+
+/*
+always @(posedge clk) begin
+  if(display_enabled) begin
       case (state)
         SM_INIT: begin
           if(start_pixel)
@@ -160,7 +197,7 @@ always @(posedge clk) begin
         SM_LOAD_CACHE:
           begin
             // if at end of display, reset regs
-            if (vram_addr == end_addr) begin
+            if (vram_addr == end_addr+1) begin
                 vram_addr <= start_addr;
                 row_cache_counter <= 0;
                 row_cache_ready <= 1'b0;    
@@ -177,47 +214,54 @@ always @(posedge clk) begin
               else begin
                 if(mem_ack) begin
                   // load a byte from vram into row cache    
-                  row_cache[row_cache_counter-1] <= data_in;            
+                  row_cache[row_cache_counter-1] <= data_in;    
+
+                  // load same byte into frame buffer
+                  frame_buffer[fb_addr] <= data_in;    
+                  //$display("data_in %h vram_addr %h counter %h fb %h", data_in, vram_addr, counter, fb);                  
+
                   row_cache_counter <= row_cache_counter + 1;
                   row_cache_ready <= 1'b0;
+
                   mem_addr <= vram_addr;
                   vram_addr <= vram_addr + 1;              
                   mem_req <= 1'b1;    
+
+                  // update the frame buffer address
+                  fb_addr <= vram_addr-start_addr;
                 end
               end
             end
           end   
         SM_OUTPUT_VIDEO:     
           begin
-            if (enabled) begin            
-              if(load_byte == 1'b1) begin
-                // load a byte from row_cache into pixel_shift_reg
-                pixel_shift_reg <= row_cache[byte_counter];
-                load_byte <= 1'b0;
-                end
-              else begin
-                // pixel_shift_reg for next cycle
-                pixel_shift_reg <= pixel_shift_reg << 1;
+            if(load_byte == 1'b1) begin
+              // load a byte from row_cache into pixel_shift_reg
+              pixel_shift_reg <= row_cache[byte_counter];
+              load_byte <= 1'b0;
+              end
+            else begin
+              // pixel_shift_reg for next cycle
+              pixel_shift_reg <= pixel_shift_reg << 1;
 
-                // advance the bit & byte counters
-                nbit <= nbit + 1'd1;
-                if (nbit == 8'd7) begin
-                  nbit <= 8'd0;
-                  load_byte <= 1'b1;  
-                  byte_counter <= byte_counter + 1'd1;              
-                end
+              // advance the bit & byte counters
+              nbit <= nbit + 1'd1;
+              if (nbit == 8'd7) begin
+                nbit <= 8'd0;
+                load_byte <= 1'b1;  
+                byte_counter <= byte_counter + 1'd1;              
+              end
 
-                // when all done return to load cache state  
-                if(byte_counter == 8'd7) begin
-                  byte_counter <= 8'd0;  
+              // when all done return to load cache state  
+              if(byte_counter == 8'd7) begin
+                byte_counter <= 8'd0;  
 
-                  // RCA Studio II repeats each horizontal line 4 times
-                  line_repeat_counter <= line_repeat_counter + 1'd1;                    
-                  if (line_repeat_counter == 3'd3) begin
-                    line_repeat_counter <= 3'd0;
-                    state <= SM_LOAD_CACHE;
-                  end  
-                end
+                // RCA Studio II repeats each horizontal line 4 times
+                line_repeat_counter <= line_repeat_counter + 1'd1;                    
+                if (line_repeat_counter == 3'd3) begin
+                  line_repeat_counter <= 3'd0;
+                  state <= SM_LOAD_CACHE;
+                end  
               end
             end
           end
@@ -229,7 +273,9 @@ always @(posedge clk) begin
       else begin
         start_pixel <= 1'b0;
       end
+  end
 end
+*/
 
 assign video = pixel_shift_reg[7]; 
 
