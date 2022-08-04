@@ -28,7 +28,7 @@ module pixie_video
     input             disp_off,
 
     input       [7:0] data_in,     
-    output reg [15:0] data_addr,
+    output wire [15:0] data_addr,
     input             data_ack,
 
     output            DMAO,     

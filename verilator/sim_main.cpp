@@ -70,13 +70,13 @@ const int input_pause = 11;
 
 // Video
 // -----
-#define VGA_WIDTH 256
+#define VGA_WIDTH 128
 #define VGA_HEIGHT 128
 #define VGA_ROTATE 0  // 90 degrees anti-clockwise
 #define VGA_SCALE_X vga_scale
 #define VGA_SCALE_Y vga_scale
 SimVideo video(VGA_WIDTH, VGA_HEIGHT, VGA_ROTATE);
-float vga_scale = 2.5;
+float vga_scale = 5;
 
 // Verilog module
 // --------------
@@ -404,17 +404,19 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("EFx:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__EFx);							
 		ImGui::Spacing();	
 		ImGui::Text("mem_addr:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_addr);
-		ImGui::Text("mem_wr_en:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_wr_en);
+		//ImGui::Text("mem_wr_en:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_wr_en);
 		ImGui::Text("mem_ack:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_ack);
 		ImGui::Spacing();	
 		ImGui::Text("horizontal_counter: 0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__horizontal_counter);
 		ImGui::Text("vertical_counter:   0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__vertical_counter);
-		ImGui::Text("pixel_shift_reg:    0x%08X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__pixel_shift_reg);		
+		ImGui::Text("pixel_shift_reg:    0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__pixel_shift_reg);		
 		ImGui::Spacing();	
 		ImGui::Text("new_h:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__new_h);
 		ImGui::Text("new_v:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__new_v);						
 		ImGui::Text("HSync:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__HSync);
 		ImGui::Text("VSync:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__VSync);
+		ImGui::Text("VBlank:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__VBlank);
+		ImGui::Text("HBlank:         0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__HBlank);		
 		ImGui::Text("video_de:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__video_de);								
 		ImGui::End();
 /*

@@ -275,7 +275,7 @@ wire [7:0] video;
 
 rcastudioii rcastudio
 (
-	.clk(clk_sys),
+	.clk_sys(clk_sys),
 	.reset(reset),
 	
 	.ioctl_download(ioctl_download),

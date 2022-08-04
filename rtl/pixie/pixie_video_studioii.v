@@ -25,10 +25,10 @@ module pixie_video_studioii
     output              csync,
     output  reg         video,
 
-    output              VSync,
-    output              HSync,    
-    output              VBlank,
-    output              HBlank,
+    output  reg         VSync,
+    output  reg         HSync,    
+    output  reg         VBlank,
+    output  reg         HBlank,
     output              video_de,      
 
     // front end, CDP1802 bus clock domain
@@ -38,21 +38,21 @@ module pixie_video_studioii
     input              disp_off,
     input        [7:0] data_in,
 
-    output reg         DMAO,
+    output wire        DMAO,
     output reg         INT,
     output reg         EFx,
 
     output reg  [15:0] mem_addr,
-    input  reg         mem_ack    
+    input              mem_ack    
 );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-parameter  pixels_per_line    = 112; // (14bytes x 8bits, constant for all 1861's)
+parameter  pixels_per_line    = 112; // (14 bytes x 8bits, constant for all 1861's)
 parameter  bytes_per_line     = 14;  // 
 parameter  active_h_pixels    = 64;  // (studio2 has 64 active pixels per visible horizontal row) 
 parameter  hsync_start_pixel  = 2;   // two cycles later to account for pipeline delay
-parameter  hsync_width_pixels = 12;  // 
+parameter  hsync_width_pixels = 6;   // 12
 
 parameter  lines_per_frame    = 262; // (constant for all 1861's) 
 parameter  active_v_lines     = 128; // (NTSC (PAL is 192. There is no PAL natively on StudioII))
@@ -97,10 +97,10 @@ reg         SC_interrupt;
 
 reg         display_enabled;
 
-reg         DMA_xfer;
+wire        DMA_xfer;
 
 reg   [7:0] row_cache[8];
-reg   [7:0] row_cache_counter;
+reg   [7:0] row_cache_counter = 0;
 reg         row_cache_ready;
 
 reg  [15:0] vram_addr = start_addr;
@@ -116,10 +116,8 @@ reg  [15:0] fb_addr = start_addr;
 assign DMAO      = (display_enabled && VBlank==1'b0 && horizontal_counter >= 1 && horizontal_counter < 9) ? 1'b0 : 1'b1;
 assign DMA_xfer  = (display_enabled && SC_dma) ? 1'b1 : 1'b0;
 
-assign mem_wr_en = DMA_xfer;
-
 assign csync     = ~(HSync ^ VSync);
-assign video_de  = ~(VBlank && HBlank);
+assign video_de  = ~(VBlank | HBlank);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -145,25 +143,16 @@ reg [7:0] nbit;
 reg load_byte = 1'b1;
 reg [3:0] line_repeat_counter = 3'd0;
 
-always @(posedge clk) begin
-  if (vram_addr == end_addr+1) begin
-    vram_addr <= start_addr;
-  end
-end
-
 always @(negedge clk) begin
   if(mem_ack) begin
     frame_buffer[fb_addr-2] <= data_in;    
     fb_addr <= vram_addr-start_addr;
     mem_addr <= vram_addr;      
-    vram_addr <= vram_addr + 1;              
-  end
+    vram_addr <= vram_addr + 1;   
 
-  if(new_h == 16 && new_v == 64) begin
-    start_pixel <= 1'b1;
-  end
-  else begin
-    start_pixel <= 1'b0;
+    if (vram_addr == end_addr) begin
+      vram_addr <= start_addr;
+    end               
   end
 end
 
@@ -176,11 +165,10 @@ reg [15:0] video_byte_counter = 0;
 reg  [7:0] byte_counter = 0;
 
 always @(posedge clk) begin
-  if(video_de) begin
     case (video_state)
       SM_READ_ROW: begin
         row_cache[row_cache_counter] <= frame_buffer[row_cache_counter+video_byte_counter];
-        //$display("SM_READ_ROW row_cache_counter %d video_byte_counter %d row_cache[row_cache_counter] %h", row_cache_counter, video_byte_counter, row_cache[row_cache_counter]); 
+        // $display("SM_READ_ROW row_cache_counter %d video_byte_counter %d row_cache[row_cache_counter] %h", row_cache_counter, video_byte_counter, row_cache[row_cache_counter]); 
         if (row_cache_counter == 7) begin
           row_cache_counter <= 0;
           video_byte_counter <= video_byte_counter + 8;    
@@ -199,10 +187,11 @@ always @(posedge clk) begin
         if(load_byte) begin
           pixel_shift_reg <= row_cache[byte_counter];
           load_byte <= 0;
-          //$display("SM_GENERATE_PIXELS load_byte byte_counter %d pixel_shift_reg %h row_cache[byte_counter] %h", byte_counter, pixel_shift_reg, row_cache[byte_counter]);               
+          // $display("SM_GENERATE_PIXELS load_byte byte_counter %d pixel_shift_reg %h row_cache[byte_counter] %h", byte_counter, pixel_shift_reg, row_cache[byte_counter]);               
         end
         else begin
-          //$display("SM_GENERATE_PIXELS byte_counter %d pixel_shift_reg %h video %h", byte_counter, pixel_shift_reg, video);    
+          //video <= pixel_shift_reg[7];
+          // $display("SM_GENERATE_PIXELS byte_counter %d pixel_shift_reg %h video %h", byte_counter, pixel_shift_reg, video);    
           pixel_shift_reg <= pixel_shift_reg << 1;
 
           nbit <= nbit + 1'd1;
@@ -211,58 +200,52 @@ always @(posedge clk) begin
             load_byte <= 1;
             byte_counter <= byte_counter + 1;          
           end      
+          new_h <= horizontal_counter + 1'd1;
 
           if(byte_counter == 8) begin
             byte_counter <= 0;
             video_byte_counter <= video_byte_counter + 8;
-        
-            if (video_byte_counter == 256) begin
-              video_byte_counter <= 0;
+
+            // repeat 4 times, then move on to next row
+            if (line_repeat_counter == 3'd3) begin
+              line_repeat_counter <= 3'd0;
+              video_state <= SM_READ_ROW;
             end
-            video_state <= SM_READ_ROW;
+            else begin
+              line_repeat_counter <= line_repeat_counter + 1;
+              new_v <= vertical_counter + 1'd1;      
+            end
           end
         end
       end
     endcase 
-  end
-end
 
-assign video = pixel_shift_reg[7];
-
-// Create HSync and HBlank
-always @(posedge clk) begin
-  if (horizontal_counter == (pixels_per_line-1)) begin
+  // Create HSync and HBlank
+  if (horizontal_counter == (pixels_per_line)) begin
     new_h <= 1'd0;
     advance_v <= 1'b1;
   end
-  else begin
-    new_h <= horizontal_counter + 1'd1;
-  end
-
   horizontal_counter <= new_h;
   HSync <= (new_h < (hsync_start_pixel+hsync_width_pixels)) ? 1'b1 : 1'b0;  
   HBlank <= (new_h < 16 || new_h > 80)  ? 1'b1 : 1'b0;  // 64 pixels wide
-  //$display("horizontal_counter %d HSync %h HBlank %h", horizontal_counter, HSync, HBlank);
-end
+  // $display("horizontal_counter %d HSync %h HBlank %h", horizontal_counter, HSync, HBlank);
 
-// Create VSync and VBlank
-always @(posedge clk) begin
+  // Create VSync and VBlank
   if(advance_v) begin
     advance_v <= 1'b0;
-    if (vertical_counter==(lines_per_frame-1))
+    if (vertical_counter==(lines_per_frame)) begin
       new_v <= 1'd0;
-    else begin
-      new_v <= vertical_counter + 1'd1;      
     end
+    vertical_counter <= new_v;
   end
-
-  vertical_counter <= new_v;
   VSync <= (new_v < (vsync_start_line+vsync_height_lines)) ? 1'b1 : 1'b0;
   VBlank <= (new_v < 64 || new_v > 192) ? 1'b1 : 1'b0;  // 128 lines for NTSC  
-  //$display("vertical_counter %d VSync %h VBlank %h", vertical_counter, VSync, VBlank);
+  // $display("vertical_counter %d VSync %h VBlank %h", vertical_counter, VSync, VBlank);
 
-  EFx <= ((new_v >=60 && new_v < 65) || (new_v >= 193 && new_v < 194)) ? 1'b0 : 1'b1;  // TODO check again
+  EFx <= ((new_v >=60 && new_v < 65) || (new_v > 192 && new_v < 194)) ? 1'b0 : 1'b1;  // TODO check again
   INT <= (new_v == 62) ? 1'b1 : 1'b0;  // TODO check again
 end
+
+assign video = pixel_shift_reg[7];
 
 endmodule

@@ -288,8 +288,8 @@ always @(posedge clk_sys) begin
   else if(vram_addr >= 'h0900) begin
     portb_ce   <= 1'b1;
     portb_addr <= vram_addr;
+    video_din <= portb_dout;        
   end
-  video_din <= portb_dout;        
   vram_ack  <= portb_ack;  
 end
 
