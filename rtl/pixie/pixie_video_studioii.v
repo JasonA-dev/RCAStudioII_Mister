@@ -142,7 +142,6 @@ always @(posedge clk) begin
 end
 
 reg [7:0] nbit;
-reg [7:0] byte_counter;
 reg load_byte = 1'b1;
 reg [3:0] line_repeat_counter = 3'd0;
 
@@ -168,116 +167,67 @@ always @(negedge clk) begin
   end
 end
 
-reg [15:0] row_number = 0;
+// Video State Machine constants
+localparam SM_READ_ROW = 0;
+localparam SM_GENERATE_PIXELS = 1;
+reg [7:0] video_state = SM_READ_ROW;
+
+reg [15:0] video_byte_counter = 0;
+reg  [7:0] byte_counter = 0;
+
 always @(posedge clk) begin
-  // read a row from frame buffer
-  if(start_pixel) begin
-    row_cache[row_cache_counter+row_number] <= frame_buffer[row_cache_counter+row_number];
+  if(video_de) begin
+    case (video_state)
+      SM_READ_ROW: begin
+        row_cache[row_cache_counter] <= frame_buffer[row_cache_counter+video_byte_counter];
+        //$display("SM_READ_ROW row_cache_counter %d video_byte_counter %d row_cache[row_cache_counter] %h", row_cache_counter, video_byte_counter, row_cache[row_cache_counter]); 
+        if (row_cache_counter == 7) begin
+          row_cache_counter <= 0;
+          video_byte_counter <= video_byte_counter + 8;    
+          video_state <= SM_GENERATE_PIXELS;                 
+        end  
+        else begin
+          row_cache_counter <= row_cache_counter + 1;  
+        end
 
-    if (row_cache_counter == 7) begin
-      row_cache_counter <= 0;
-      row_number <= row_number + 8;
-    end  
+        if (video_byte_counter == 256) begin
+          video_byte_counter <= 0;
+        end    
+      end
 
-    row_cache_counter <= row_cache_counter + 1;
-    if (row_number == 256) begin
-      row_number <= 0;
-    end     
+      SM_GENERATE_PIXELS: begin
+        if(load_byte) begin
+          pixel_shift_reg <= row_cache[byte_counter];
+          load_byte <= 0;
+          //$display("SM_GENERATE_PIXELS load_byte byte_counter %d pixel_shift_reg %h row_cache[byte_counter] %h", byte_counter, pixel_shift_reg, row_cache[byte_counter]);               
+        end
+        else begin
+          //$display("SM_GENERATE_PIXELS byte_counter %d pixel_shift_reg %h video %h", byte_counter, pixel_shift_reg, video);    
+          pixel_shift_reg <= pixel_shift_reg << 1;
+
+          nbit <= nbit + 1'd1;
+          if (nbit == 8'd7) begin
+            nbit <= 8'd0;
+            load_byte <= 1;
+            byte_counter <= byte_counter + 1;          
+          end      
+
+          if(byte_counter == 8) begin
+            byte_counter <= 0;
+            video_byte_counter <= video_byte_counter + 8;
+        
+            if (video_byte_counter == 256) begin
+              video_byte_counter <= 0;
+            end
+            video_state <= SM_READ_ROW;
+          end
+        end
+      end
+    endcase 
   end
 end
 
-/*
-always @(posedge clk) begin
-  if(display_enabled) begin
-      case (state)
-        SM_INIT: begin
-          if(start_pixel)
-            state <= SM_LOAD_CACHE;
-          end
-        SM_LOAD_CACHE:
-          begin
-            // if at end of display, reset regs
-            if (vram_addr == end_addr+1) begin
-                vram_addr <= start_addr;
-                row_cache_counter <= 0;
-                row_cache_ready <= 1'b0;    
-                state <= SM_INIT;                   
-            end
-            else begin
-              // reset row cache counter if at 8
-              if (row_cache_counter == 8) begin
-                row_cache_counter <= 0;
-                row_cache_ready <= 1'b1;
-                mem_req <= 1'b0;  
-                state <= SM_OUTPUT_VIDEO;                      
-              end
-              else begin
-                if(mem_ack) begin
-                  // load a byte from vram into row cache    
-                  row_cache[row_cache_counter-1] <= data_in;    
-
-                  // load same byte into frame buffer
-                  frame_buffer[fb_addr] <= data_in;    
-                  //$display("data_in %h vram_addr %h counter %h fb %h", data_in, vram_addr, counter, fb);                  
-
-                  row_cache_counter <= row_cache_counter + 1;
-                  row_cache_ready <= 1'b0;
-
-                  mem_addr <= vram_addr;
-                  vram_addr <= vram_addr + 1;              
-                  mem_req <= 1'b1;    
-
-                  // update the frame buffer address
-                  fb_addr <= vram_addr-start_addr;
-                end
-              end
-            end
-          end   
-        SM_OUTPUT_VIDEO:     
-          begin
-            if(load_byte == 1'b1) begin
-              // load a byte from row_cache into pixel_shift_reg
-              pixel_shift_reg <= row_cache[byte_counter];
-              load_byte <= 1'b0;
-              end
-            else begin
-              // pixel_shift_reg for next cycle
-              pixel_shift_reg <= pixel_shift_reg << 1;
-
-              // advance the bit & byte counters
-              nbit <= nbit + 1'd1;
-              if (nbit == 8'd7) begin
-                nbit <= 8'd0;
-                load_byte <= 1'b1;  
-                byte_counter <= byte_counter + 1'd1;              
-              end
-
-              // when all done return to load cache state  
-              if(byte_counter == 8'd7) begin
-                byte_counter <= 8'd0;  
-
-                // RCA Studio II repeats each horizontal line 4 times
-                line_repeat_counter <= line_repeat_counter + 1'd1;                    
-                if (line_repeat_counter == 3'd3) begin
-                  line_repeat_counter <= 3'd0;
-                  state <= SM_LOAD_CACHE;
-                end  
-              end
-            end
-          end
-      endcase
-
-      if(new_h == 16 && new_v == 64) begin
-        start_pixel <= 1'b1;
-      end
-      else begin
-        start_pixel <= 1'b0;
-      end
-  end
-end
-*/
-
-assign video = pixel_shift_reg[7]; 
+assign video = pixel_shift_reg[7];
 
 // Create HSync and HBlank
 always @(posedge clk) begin
