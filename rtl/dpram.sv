@@ -20,30 +20,29 @@
 //
 
 module dpram #(
-    parameter DATA = 8,
-    parameter ADDR = 14
+    parameter data_width_g = 8,
+    parameter addr_width_g = 14
 ) (
-    input   wire                clk,
+    input   wire                clk_sys,
 
     // Port A
-    input   wire                a_ce,    
-    input   wire                a_wr,
-    output  wire                a_ack,      
-    input   wire    [ADDR-1:0]  a_addr,
-    input   wire    [DATA-1:0]  a_din,
-    output  logic   [DATA-1:0]  a_dout,
+    input   wire                ram_cs,    
+    input   wire                ram_we,
+    input   wire    [addr_width_g-1:0]  ram_ad,
+    input   wire    [data_width_g-1:0]  ram_d,
+    output  logic   [data_width_g-1:0]  ram_q,
 
     // Port B
-    input   wire                b_ce,    
-    input   wire                b_wr,
+    input   wire                ram_cs_b,    
+    input   wire                ram_we_b,
     output  wire                b_ack,    
-    input   wire    [ADDR-1:0]  b_addr,
-    input   wire    [DATA-1:0]  b_din,
-    output  logic   [DATA-1:0]  b_dout
+    input   wire    [addr_width_g-1:0]  ram_ad_b,
+    input   wire    [data_width_g-1:0]  ram_d_b,
+    output  logic   [data_width_g-1:0]  ram_q_b
 );
 
 // Shared memory
-logic [DATA-1:0] mem [(2**ADDR)-1:0];
+logic [data_width_g-1:0] mem [(2**addr_width_g)-1:0];
 
 /*
 initial begin
@@ -52,25 +51,25 @@ end
 */
 
 // Port A
-always @(posedge clk) begin
-    if(a_ce) begin
-        a_dout <= mem[a_addr];
+always @(posedge clk_sys) begin
+    if(ram_cs) begin
+        ram_q <= mem[ram_ad];
     end
     if(a_wr) begin
-        mem[a_addr] <= a_din;
+        mem[ram_ad] <= ram_d;
     end
 end
 
 // Port B
-always @(posedge clk) begin
+always @(posedge clk_sys) begin
     b_ack <= 1'b0;
-    if(b_ce) begin
-        b_dout <= mem[b_addr];
+    if(ram_cs_b) begin
+        ram_q_b <= mem[ram_ad_b];
         b_ack <= 1'b1;        
       //  $display("b_dout %h b_dout %h b_addr %h", b_ack, b_dout, b_addr);           
     end
-    if(b_wr) begin
-        mem[b_addr] <= b_din;
+    if(ram_we_b) begin
+        mem[ram_ad_b] <= ram_d_b;
     end
 end
 

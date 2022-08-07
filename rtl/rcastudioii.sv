@@ -204,6 +204,7 @@ reg   [7:0]  ram_d;  // RAM write data
 reg  [15:0]  ram_a;  // RAM address
 reg   [7:0]  ram_q;  // RAM read data
 
+/*
 wire  [7:0]  romDo_StudioII;
 wire [11:0]  romA;
 
@@ -214,22 +215,22 @@ rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
 	.data_out   (romDo_StudioII ),
 	.a          (romA[10:0]     )
 );
+*/////////
+dpram #(.addr_width_g(12)) dpram (
+  .clk_sys    (clk_sys),        // I
 
-dpram #(.ADDR(12)) dpram (
-  .clk    (clk_sys),        // I
+	.ram_cs     (ram_rd),         // I
+	.ram_we     (ram_wr),         // I
+	.ram_d      (ram_d),          // I DI
+	.ram_q      (ram_q),          // O dpram_dout
+	.ram_ad     (ram_a),          // I AB
 
-	.a_ce   (ram_rd),         // I
-	.a_wr   (ram_wr),         // I
-	.a_din  (ram_d),          // I DI
-	.a_dout (ram_q),          // O dpram_dout
-	.a_addr (ram_a),          // I AB
-
-	.b_ce   (portb_ce),       // I
-	.b_wr   (portb_wr),       // I
-	.b_ack  (portb_ack),      // O  
-	.b_din  (portb_din),      // I
-	.b_dout (portb_dout),     // O
-	.b_addr (portb_addr)      // I
+	.ram_cs_b   (portb_ce),       // I
+	.ram_we_b   (portb_wr),       // I
+	//.b_ack      (portb_ack),      // O  
+	.ram_d_b    (portb_din),      // I
+	.ram_q_b    (portb_dout),     // O
+	.ram_ad_b   (portb_addr)      // I
 );
 
 ////////////////// DMA //////////////////////////////////////////////////////////////////
@@ -290,7 +291,7 @@ always @(posedge clk_sys) begin
     portb_addr <= vram_addr;
     video_din <= portb_dout;        
   end
-  vram_ack  <= portb_ack;  
+//  vram_ack  <= portb_ack;  
 end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)

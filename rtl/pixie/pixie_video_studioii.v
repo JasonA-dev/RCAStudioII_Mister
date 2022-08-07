@@ -23,7 +23,7 @@ module pixie_video_studioii
     input               reset, 
 
     output              csync,
-    output  reg         video,
+    output  wire        video,
 
     output  reg         VSync,
     output  reg         HSync,    
