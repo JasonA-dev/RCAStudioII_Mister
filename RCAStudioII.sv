@@ -259,8 +259,8 @@ pll pll
 	.outclk_0(clk_sys)
 );
 
-wire reset = ioctl_download;
-//wire reset = RESET | status[0] | buttons[1] | ioctl_download;
+//wire reset = ioctl_download;
+wire reset = ~RESET | status[0] | buttons[1] | ioctl_download;
 
 //////////////////////////////////////////////////////////////////
 
@@ -291,14 +291,14 @@ rcastudioii rcastudio
 	.HSync(HSync),
 	.VBlank(VBlank),
 	.VSync(VSync),
-  	.video_de(VGA_DE),
+  	.video_de(),
 	.video(video)
 );
 
 assign CLK_VIDEO = clk_sys;
 assign CE_PIXEL = ce_pix;
 
-//assign VGA_DE = ~(HBlank | VBlank);
+assign VGA_DE = ~(HBlank | VBlank);
 assign VGA_HS = HSync;
 assign VGA_VS = VSync;
 assign VGA_R = {8{video}};
@@ -307,6 +307,6 @@ assign VGA_B = {8{video}};
 
 reg  [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 
-assign LED_USER    = act_cnt[26]  ? act_cnt[25:18]  > act_cnt[7:0]  : act_cnt[25:18]  <= act_cnt[7:0];
+assign LED_USER = act_cnt[26] ? act_cnt[25:18] > act_cnt[7:0] : act_cnt[25:18] <= act_cnt[7:0];
 
 endmodule

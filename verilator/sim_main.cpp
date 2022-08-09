@@ -316,9 +316,9 @@ int main(int argc, char** argv, char** env) {
 		ImGui::SetWindowPos(windowTitle_DebugLog, ImVec2(0, 160), ImGuiCond_Once);
 
 		// Memory debug
-		ImGui::Begin("ROM");
-		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__Rom_StudioII__DOT__d, 2048, 0);
-		ImGui::End();
+		//ImGui::Begin("ROM");
+		//mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__Rom_StudioII__DOT__d, 2048, 0);
+		//ImGui::End();
 		ImGui::Begin("DPRAM");
 		mem_edit.DrawContents(&top->top__DOT__rcastudio__DOT__dpram__DOT__mem, 4096, 0);
 		ImGui::End();		

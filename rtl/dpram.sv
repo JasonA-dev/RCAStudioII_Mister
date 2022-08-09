@@ -35,7 +35,7 @@ module dpram #(
     // Port B
     input   wire                ram_cs_b,    
     input   wire                ram_we_b,
-    output  wire                b_ack,    
+ //   output  wire                b_ack,    
     input   wire    [addr_width_g-1:0]  ram_ad_b,
     input   wire    [data_width_g-1:0]  ram_d_b,
     output  logic   [data_width_g-1:0]  ram_q_b
@@ -55,17 +55,17 @@ always @(posedge clk_sys) begin
     if(ram_cs) begin
         ram_q <= mem[ram_ad];
     end
-    if(a_wr) begin
+    if(ram_we) begin
         mem[ram_ad] <= ram_d;
     end
 end
 
 // Port B
 always @(posedge clk_sys) begin
-    b_ack <= 1'b0;
+  //  b_ack <= 1'b0;
     if(ram_cs_b) begin
         ram_q_b <= mem[ram_ad_b];
-        b_ack <= 1'b1;        
+      //  b_ack <= 1'b1;        
       //  $display("b_dout %h b_dout %h b_addr %h", b_ack, b_dout, b_addr);           
     end
     if(ram_we_b) begin

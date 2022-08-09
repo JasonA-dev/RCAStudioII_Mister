@@ -144,7 +144,7 @@ reg load_byte = 1'b1;
 reg [3:0] line_repeat_counter = 3'd0;
 
 always @(negedge clk) begin
-  if(mem_ack) begin
+ // if(mem_ack) begin
     frame_buffer[fb_addr-2] <= data_in;    
     fb_addr <= vram_addr-start_addr;
     mem_addr <= vram_addr;      
@@ -153,7 +153,7 @@ always @(negedge clk) begin
     if (vram_addr == end_addr) begin
       vram_addr <= start_addr;
     end               
-  end
+ // end
 end
 
 // Video State Machine constants
