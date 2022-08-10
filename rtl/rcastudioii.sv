@@ -52,7 +52,7 @@ wire        EFx;
 wire        Locked;
 
 reg         vram_rd;
-reg         vram_ack;
+//reg         vram_ack;
 
 pixie_video pixie_video (
     // front end, CDP1802 bus clock domain
@@ -66,7 +66,6 @@ pixie_video pixie_video (
 
     .data_addr  (vram_addr),  // O [9:0]
     .data_in    (video_din),  // I [7:0]    
-    .data_ack   (vram_ack),   // I
 
     .DMAO       (DMAO),       // O
     .INT        (INT),        // O
@@ -227,7 +226,6 @@ dpram #(.addr_width_g(12)) dpram (
 
 	.ram_cs_b   (portb_ce),       // I
 	.ram_we_b   (portb_wr),       // I
-	//.b_ack      (portb_ack),      // O  
 	.ram_d_b    (portb_din),      // I
 	.ram_q_b    (portb_dout),     // O
 	.ram_ad_b   (portb_addr)      // I
@@ -291,7 +289,6 @@ always @(posedge clk_sys) begin
     portb_addr <= vram_addr;
     video_din <= portb_dout;        
   end
-//  vram_ack  <= portb_ack;  
 end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)

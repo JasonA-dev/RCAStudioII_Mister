@@ -42,8 +42,7 @@ module pixie_video_studioii
     output reg         INT,
     output reg         EFx,
 
-    output reg  [15:0] mem_addr,
-    input              mem_ack    
+    output reg  [15:0] mem_addr
 );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,16 +143,14 @@ reg load_byte = 1'b1;
 reg [3:0] line_repeat_counter = 3'd0;
 
 always @(negedge clk) begin
- // if(mem_ack) begin
-    frame_buffer[fb_addr-2] <= data_in;    
-    fb_addr <= vram_addr-start_addr;
-    mem_addr <= vram_addr;      
-    vram_addr <= vram_addr + 1;   
+  frame_buffer[fb_addr-2] <= data_in;    
+  fb_addr <= vram_addr-start_addr;
+  mem_addr <= vram_addr;      
+  vram_addr <= vram_addr + 1;   
 
-    if (vram_addr == end_addr) begin
-      vram_addr <= start_addr;
-    end               
- // end
+  if (vram_addr == end_addr) begin
+    vram_addr <= start_addr;
+  end               
 end
 
 // Video State Machine constants
@@ -190,7 +187,7 @@ always @(posedge clk) begin
           // $display("SM_GENERATE_PIXELS load_byte byte_counter %d pixel_shift_reg %h row_cache[byte_counter] %h", byte_counter, pixel_shift_reg, row_cache[byte_counter]);               
         end
         else begin
-          //video <= pixel_shift_reg[7];
+          // video <= pixel_shift_reg[7];
           // $display("SM_GENERATE_PIXELS byte_counter %d pixel_shift_reg %h video %h", byte_counter, pixel_shift_reg, video);    
           pixel_shift_reg <= pixel_shift_reg << 1;
 

@@ -376,7 +376,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Spacing();			
 		ImGui::Text("data_in:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_in);
 		ImGui::Text("data_addr:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_addr);
-		ImGui::Text("data_ack:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_ack);				
+		//ImGui::Text("data_ack:      0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__data_ack);				
 		ImGui::Spacing();	
 		ImGui::Text("INT:           0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__INT);
 		ImGui::Text("DMAO:          0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__DMAO);
@@ -405,7 +405,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Spacing();	
 		ImGui::Text("mem_addr:      0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_addr);
 		//ImGui::Text("mem_wr_en:     0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_wr_en);
-		ImGui::Text("mem_ack:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_ack);
+		//ImGui::Text("mem_ack:       0x%02X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__mem_ack);
 		ImGui::Spacing();	
 		ImGui::Text("horizontal_counter: 0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__horizontal_counter);
 		ImGui::Text("vertical_counter:   0x%04X", top->top__DOT__rcastudio__DOT__pixie_video__DOT__pixie_video_studioii__DOT__vertical_counter);
