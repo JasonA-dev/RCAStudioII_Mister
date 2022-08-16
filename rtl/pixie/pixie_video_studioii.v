@@ -61,6 +61,8 @@ parameter  vsync_height_lines = 6;   //
 parameter  start_addr         = 'h0900;
 parameter  end_addr           = start_addr + 'hff;
 
+
+parameter vertical_start_line = 64;
 //PAL
 // interruptGraphicsMode_ = 74;
 // startGraphicsMode_     = 76;
@@ -160,7 +162,9 @@ localparam SM_BLANK = 0;
 localparam SM_READ_ROW = 1;
 localparam SM_LOAD_BYTE = 2;
 localparam SM_GENERATE_PIXELS = 3;
-reg [7:0] video_state = SM_BLANK;
+localparam SM_VBLANK = 4;
+localparam SM_VIDEO_ROW = 5;
+reg [7:0] video_state = SM_VBLANK;
 
 reg [15:0] video_byte_counter = 0;
 reg  [7:0] byte_counter = 0;
@@ -170,6 +174,38 @@ reg  [7:0] tmp_vertical_pixel_counter = 0;
 
 always @(posedge clk) begin
     case (video_state)
+      // State entered when vertical row is in VBlank, will be top and bottom
+      SM_VBLANK: begin
+        vertical_pixel_counter <= vertical_pixel_counter + 1'd1;
+
+        VSync <= (vertical_pixel_counter < (vsync_start_line+vsync_height_lines)) ? 1'b1 : 1'b0;
+
+        // check for EFx and INT lines, and issue those signals to the cpu
+        EFx <= ((vertical_pixel_counter > 59 && vertical_pixel_counter < 65) || (vertical_pixel_counter > 192 && vertical_pixel_counter < 194)) ? 1'b0 : 1'b1;  // TODO check again
+        INT <= (vertical_pixel_counter == 62) ? 1'b1 : 1'b0;  // TODO check again
+
+        if (vertical_pixel_counter == vertical_start_line) begin
+        //  video_state <= SM_VIDEO_ROW;
+          $display("VBLANK: %d vertical_pixel_counter == vertical_start_line", vertical_pixel_counter);        
+        end
+
+        if (vertical_pixel_counter == lines_per_frame) begin
+          vertical_pixel_counter <= 0;
+          $display("VBLANK: %d vertical_pixel_counter == lines_per_frame", vertical_pixel_counter);             
+        end
+
+        $display("VBLANK: %d", vertical_pixel_counter);
+      end
+
+      // State entered when vertical row is in active video
+      SM_VIDEO_ROW: begin
+
+      // check the horizontal pixel position is not in HBlank
+
+      // once we enter active horizontal position, start reading rows and generating pixels
+
+      end
+
       SM_BLANK: begin
         // Count horizontal pixels
         horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;
@@ -252,6 +288,7 @@ always @(posedge clk) begin
 
     endcase 
 
+/*
   // Create HSync and HBlank
   HSync <= (horizontal_pixel_counter < (hsync_start_pixel+hsync_width_pixels)) ? 1'b1 : 1'b0;  
   HBlank <= (horizontal_pixel_counter < 16 || horizontal_pixel_counter > 80)  ? 1'b1 : 1'b0;  // 64 pixels wide
@@ -267,6 +304,7 @@ always @(posedge clk) begin
 
   if(VBlank == 1'b1 && HBlank == 1'b1)
     video_state <= SM_BLANK;
+*/
 
 end
 
