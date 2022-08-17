@@ -63,6 +63,8 @@ parameter  end_addr           = start_addr + 'hff;
 
 
 parameter vertical_start_line = 64;
+parameter horizontal_start_pixel = 16;
+parameter horizontal_end_pixel = 80;
 //PAL
 // interruptGraphicsMode_ = 74;
 // startGraphicsMode_     = 76;
@@ -113,6 +115,12 @@ reg         start_pixel = 1'b0;
 
 reg   [7:0] frame_buffer[256];
 reg  [15:0] fb_addr = start_addr;
+
+reg vblank = 1'b1;
+reg hblank = 1'b1;
+
+assign VBlank = vblank;
+assign HBlank = hblank;
 
 ////////////////////////// assignments  ////////////////////////////////////////////////////////////////////////////////
 
@@ -176,7 +184,21 @@ always @(posedge clk) begin
     case (video_state)
       // State entered when vertical row is in VBlank, will be top and bottom
       SM_VBLANK: begin
-        vertical_pixel_counter <= vertical_pixel_counter + 1'd1;
+        horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;
+
+        if(horizontal_pixel_counter == horizontal_start_pixel) begin
+          $display("VBLANK: %d HBLANK: %d VPC %d HPC %d horizontal_pixel_counter == horizontal_start_pixel", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);    
+        end
+
+        if(horizontal_pixel_counter == horizontal_end_pixel) begin
+          $display("VBLANK: %d HBLANK: %d VPC %d HPC %d horizontal_pixel_counter == horizontal_end_pixel", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);    
+        end
+
+        if (horizontal_pixel_counter == pixels_per_line) begin
+          horizontal_pixel_counter <= 0;
+          vertical_pixel_counter <= vertical_pixel_counter + 1'd1;
+          $display("VBLANK: %d HBLANK: %d VPC %d HPC %d horizontal_pixel_counter == pixels_per_line", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);               
+        end
 
         VSync <= (vertical_pixel_counter < (vsync_start_line+vsync_height_lines)) ? 1'b1 : 1'b0;
 
@@ -186,20 +208,20 @@ always @(posedge clk) begin
 
         if (vertical_pixel_counter == vertical_start_line) begin
         //  video_state <= SM_VIDEO_ROW;
-          $display("VBLANK: %d vertical_pixel_counter == vertical_start_line", vertical_pixel_counter);        
+          $display("VBLANK: %d HBLANK: %d VPC %d HPC %d vertical_pixel_counter == vertical_start_line", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);        
         end
 
         if (vertical_pixel_counter == lines_per_frame) begin
           vertical_pixel_counter <= 0;
-          $display("VBLANK: %d vertical_pixel_counter == lines_per_frame", vertical_pixel_counter);             
+          $display("VBLANK: %d HBLANK: %d VPC %d HPC %d vertical_pixel_counter == lines_per_frame", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);             
         end
 
-        $display("VBLANK: %d", vertical_pixel_counter);
+        $display("VBLANK: %d HBLANK: %d VPC %d HPC %d", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);
       end
 
       // State entered when vertical row is in active video
       SM_VIDEO_ROW: begin
-
+        $display("VBLANK: %d HBLANK: %d VPC %d HPC %d", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);
       // check the horizontal pixel position is not in HBlank
 
       // once we enter active horizontal position, start reading rows and generating pixels
@@ -288,20 +310,20 @@ always @(posedge clk) begin
 
     endcase 
 
-/*
   // Create HSync and HBlank
   HSync <= (horizontal_pixel_counter < (hsync_start_pixel+hsync_width_pixels)) ? 1'b1 : 1'b0;  
-  HBlank <= (horizontal_pixel_counter < 16 || horizontal_pixel_counter > 80)  ? 1'b1 : 1'b0;  // 64 pixels wide
+  hblank <= (horizontal_pixel_counter < 15 || horizontal_pixel_counter > 79)  ? 1'b1 : 1'b0;  // 64 pixels wide
   //$display("HSync %h HBlank %h horizontal_pixel_counter %d", HSync, HBlank, horizontal_pixel_counter);
 
   // Create VSync and VBlank
   VSync <= (vertical_pixel_counter < (vsync_start_line+vsync_height_lines)) ? 1'b1 : 1'b0;
-  VBlank <= (vertical_pixel_counter < 64 || vertical_pixel_counter > 192) ? 1'b1 : 1'b0;  // 128 lines for NTSC  
+  vblank <= (vertical_pixel_counter < 64 || vertical_pixel_counter > 192) ? 1'b1 : 1'b0;  // 128 lines for NTSC  
   //$display("VSync %h VBlank %h vertical_pixel_counter   %d", VSync, VBlank, vertical_pixel_counter);
 
   EFx <= ((vertical_pixel_counter > 59 && vertical_pixel_counter < 65) || (vertical_pixel_counter > 192 && vertical_pixel_counter < 194)) ? 1'b0 : 1'b1;  // TODO check again
   INT <= (vertical_pixel_counter == 62) ? 1'b1 : 1'b0;  // TODO check again
 
+/*
   if(VBlank == 1'b1 && HBlank == 1'b1)
     video_state <= SM_BLANK;
 */
