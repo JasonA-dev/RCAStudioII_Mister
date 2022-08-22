@@ -135,12 +135,11 @@ always @(negedge clk) begin
 end
 
 // Video State Machine constants
-localparam SM_BLANK = 0;
-localparam SM_READ_ROW = 1;
-localparam SM_LOAD_BYTE = 2;
+localparam SM_VBLANK          = 0;
+localparam SM_READ_ROW_CACHE  = 1;
+localparam SM_LOAD_BYTE       = 2;
 localparam SM_GENERATE_PIXELS = 3;
-localparam SM_VBLANK = 4;
-localparam SM_VIDEO_ROW = 5;
+localparam SM_VIDEO_ROW       = 4;
 reg  [7:0] video_state = SM_VBLANK;
 
 reg [15:0] video_byte_counter = 0;
@@ -174,19 +173,36 @@ always @(posedge clk) begin
         end
       end
       SM_VIDEO_ROW: begin
-        //$display("SM_VIDEO_ROW VBLANK: %d HBLANK: %d VPC %d HPC %d", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);
+        //$display("SM_VIDEO_ROW VBlank: %d HBlank: %d VPC %d HPC %d", VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter);
         if(horizontal_pixel_counter == horizontal_start_pixel) begin
-          //$display("SM_VIDEO_ROW VBLANK: %d HBLANK: %d VPC %d HPC %d horizontal_pixel_counter == horizontal_start_pixel", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);    
-          video_state <= SM_READ_ROW;        
+          //$display("SM_VIDEO_ROW VBlank: %d HBlank: %d VPC %d HPC %d horizontal_pixel_counter == horizontal_start_pixel", VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter);    
+
+          // check the line reat counter is less than 4, if it is, go to load bytes
+          if (line_repeat_counter < 4'd4) begin
+            line_repeat_counter <= line_repeat_counter + 1'd1;
+            video_state <= SM_LOAD_BYTE;
+          end
+          else begin
+            line_repeat_counter <= 0;
+            video_state <= SM_READ_ROW_CACHE;        
+          end
+        end
+        else if (horizontal_pixel_counter == pixels_per_line) begin
+          vertical_pixel_counter <= vertical_pixel_counter + 1'd1;
+          horizontal_pixel_counter <= 0;
         end
         else begin
           horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;
         end
+
+        if(vertical_pixel_counter > vertical_end_line) begin
+          video_state <= SM_VBLANK;
+        end
       end
-      SM_READ_ROW: begin
+      SM_READ_ROW_CACHE: begin
         row_cache[row_cache_counter] <= frame_buffer[row_cache_counter+video_byte_counter];
-        $display("SM_READ_ROW row_cache_counter %d video_byte_counter %d row_cache[%d] %h vertical_pixel_counter %d horizontal_pixel_counter %d HSync %d VSync %d HBlank %d VBlank %d", 
-                    row_cache_counter, video_byte_counter, row_cache_counter, row_cache[row_cache_counter], vertical_pixel_counter, horizontal_pixel_counter, HSync, VSync, HBlank, VBlank);
+        //$display("SM_READ_ROW row_cache_counter %d video_byte_counter %d row_cache[%d] %h vertical_pixel_counter %d horizontal_pixel_counter %d HSync %d VSync %d HBlank %d VBlank %d", 
+        //            row_cache_counter, video_byte_counter, row_cache_counter, row_cache[row_cache_counter], vertical_pixel_counter, horizontal_pixel_counter, HSync, VSync, HBlank, VBlank);
         if (tmp_row_cache_counter == 8) begin
           tmp_row_cache_counter <= 0;
           row_cache_counter <= 0;
@@ -204,51 +220,26 @@ always @(posedge clk) begin
       end
       SM_LOAD_BYTE: begin
           pixel_shift_reg <= row_cache[byte_counter];
-          $display("SM_LOAD_BYTE load_byte byte_counter %d pixel_shift_reg %h row_cache[%d] %h vertical_pixel_counter %d horizontal_pixel_counter %d line_repeat_counter %d",
-                      byte_counter, pixel_shift_reg, byte_counter, row_cache[byte_counter], vertical_pixel_counter, horizontal_pixel_counter, line_repeat_counter); 
+          //$display("SM_LOAD_BYTE load_byte byte_counter %d pixel_shift_reg %h row_cache[%d] %h vertical_pixel_counter %d horizontal_pixel_counter %d line_repeat_counter %d",
+          //            byte_counter, pixel_shift_reg, byte_counter, row_cache[byte_counter], vertical_pixel_counter, horizontal_pixel_counter, line_repeat_counter); 
           video_state <= SM_GENERATE_PIXELS;
       end
       SM_GENERATE_PIXELS: begin
-        pixel_shift_reg <= pixel_shift_reg << 1;  
-        horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;
-
-        if (nbit == 8'd7) begin
+        // shift out 8 video bits
+        if (nbit < 8'd7) begin
+          pixel_shift_reg <= pixel_shift_reg << 1;  
+          horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;
+          nbit <= nbit + 1'd1;
+        end  
+        else begin
           nbit <= 8'd0;
           tmp_byte_counter <= tmp_byte_counter + 1'd1;
           byte_counter <= tmp_byte_counter;   
           video_state <= SM_LOAD_BYTE;
-        end  
-        else begin
-          nbit <= nbit + 1'd1;
         end    
-
-        $display("SM_GENERATE_PIXELS byte_counter %d pixel_shift_reg %h video %h vertical_pixel_counter %d horizontal_pixel_counter %d line_repeat_counter %d nbit %d",
-                    byte_counter, pixel_shift_reg, video, vertical_pixel_counter, horizontal_pixel_counter, line_repeat_counter, nbit);  
-
-        if(byte_counter == 7) begin
-          tmp_byte_counter <= 0;          
-          byte_counter <= 0;
-          // repeat 4 times, then move on to next row
-          if (line_repeat_counter == 3'd4) begin
-            horizontal_pixel_counter <= 0;            
-            line_repeat_counter <= 3'd0;
-            //video_state <= SM_READ_ROW;
-          end
-          else begin
-            horizontal_pixel_counter <= 0;
-            line_repeat_counter <= line_repeat_counter + 1'd1; 
-            vertical_pixel_counter <= vertical_pixel_counter + 1'd1;                
-          end
-        end
-
-        if (vertical_pixel_counter == vertical_end_line) begin
-          //video_state <= SM_VBLANK;
-          //$display("SM_GENERATE_PIXELS VBLANK: %d HBLANK: %d VPC %d HPC %d vertical_pixel_counter == vertical_end_line", VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter);        
-        end
-        if (horizontal_pixel_counter == pixels_per_line) begin
-          horizontal_pixel_counter <= 0;
-          //video_state <= SM_VIDEO_ROW;          
-          //$display("SM_GENERATE_PIXELS VBLANK: %d HBLANK: %d VPC %d HPC %d horizontal_pixel_counter == pixels_per_line", VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter);               
+        // return to video row state if 8 bytes have been shifted out
+        if(byte_counter == 8) begin
+          video_state <= SM_VIDEO_ROW;
         end
       end
     endcase 
@@ -258,8 +249,8 @@ always @(posedge clk) begin
 
     VSync  <= (vertical_pixel_counter   == vsync_line)  ? 1'b1 : 1'b0;
     HSync  <= (horizontal_pixel_counter == hsync_pixel) ? 1'b1 : 1'b0;
-    HBlank <= (horizontal_pixel_counter < 16 || horizontal_pixel_counter > 80)    ? 1'b1 : 1'b0;  // 64 pixels wide
-    VBlank <= (vertical_pixel_counter   < 64 || vertical_pixel_counter   > 192)   ? 1'b1 : 1'b0;  // 128 lines for NTSC  
+    HBlank <= (horizontal_pixel_counter < 16 || horizontal_pixel_counter > 78)  ? 1'b1 : 1'b0;  // 64 pixels wide
+    VBlank <= (vertical_pixel_counter   < 64 || vertical_pixel_counter   > 192) ? 1'b1 : 1'b0;  // 128 lines for NTSC  
 end
 
 assign video = pixel_shift_reg[7];
