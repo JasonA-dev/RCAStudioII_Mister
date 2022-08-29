@@ -173,45 +173,55 @@ always @(posedge clk) begin
         end
       end
       SM_VIDEO_ROW: begin
-        //$display("SM_VIDEO_ROW VBlank: %d HBlank: %d VPC %d HPC %d", VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter);
-        if(horizontal_pixel_counter == horizontal_start_pixel) begin
-          //$display("SM_VIDEO_ROW VBlank: %d HBlank: %d VPC %d HPC %d horizontal_pixel_counter == horizontal_start_pixel", VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter);    
+        if(horizontal_pixel_counter < horizontal_start_pixel) begin
+          horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;
+          //$display("SM_VIDEO_ROW 1 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d left blank", 
+          //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);                
+        end
+        else if (horizontal_pixel_counter < horizontal_end_pixel) begin
+            //$display("SM_VIDEO_ROW 2 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d generate pixels", 
+            //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);            
 
-          // check the line reat counter is less than 4, if it is, go to load bytes
+          // in this horizontal pixel position, we need to determine:
+          // the relevant line repeat counter
+          //    if this is less than 4, we keep the current row cache, and then move on to looking at the byte counter, by entering the load byte state
+          //    if the line repeat counter has reached 4, it is time to read a new row cache
           if (line_repeat_counter < 4'd4) begin
             line_repeat_counter <= line_repeat_counter + 1'd1;
             video_state <= SM_LOAD_BYTE;
           end
           else begin
-            line_repeat_counter <= 0;
-            video_state <= SM_READ_ROW_CACHE;        
+            line_repeat_counter <= 1;
+            video_state <= SM_READ_ROW_CACHE;
           end
         end
-        else if (horizontal_pixel_counter == pixels_per_line) begin
+        else if (horizontal_pixel_counter < pixels_per_line+1) begin
+          horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;   
+            //$display("SM_VIDEO_ROW 3 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d right blank", 
+            //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);                     
+        end
+        else begin
           vertical_pixel_counter <= vertical_pixel_counter + 1'd1;
           horizontal_pixel_counter <= 0;
         end
-        else begin
-          horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;
-        end
 
-        if(vertical_pixel_counter > vertical_end_line) begin
+        if (vertical_pixel_counter == vertical_end_line+1) begin
           video_state <= SM_VBLANK;
+          //$display("SM_VIDEO_ROW 4 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d vertical_pixel_counter == vertical_end_line+1", 
+          //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);             
         end
       end
       SM_READ_ROW_CACHE: begin
         row_cache[row_cache_counter] <= frame_buffer[row_cache_counter+video_byte_counter];
-        //$display("SM_READ_ROW row_cache_counter %d video_byte_counter %d row_cache[%d] %h vertical_pixel_counter %d horizontal_pixel_counter %d HSync %d VSync %d HBlank %d VBlank %d", 
+        //$display("SM_READ_ROW_CACHE row_cache_counter %d video_byte_counter %d row_cache[%d] %h vertical_pixel_counter %d horizontal_pixel_counter %d HSync %d VSync %d HBlank %d VBlank %d", 
         //            row_cache_counter, video_byte_counter, row_cache_counter, row_cache[row_cache_counter], vertical_pixel_counter, horizontal_pixel_counter, HSync, VSync, HBlank, VBlank);
-        if (tmp_row_cache_counter == 8) begin
-          tmp_row_cache_counter <= 0;
+        if (row_cache_counter == 7) begin
           row_cache_counter <= 0;
           video_byte_counter <= video_byte_counter + 8;    
           video_state <= SM_LOAD_BYTE;                 
         end  
         else begin
-          tmp_row_cache_counter <= tmp_row_cache_counter + 1'd1;
-          row_cache_counter <= tmp_row_cache_counter;  
+          row_cache_counter <= row_cache_counter + 1'd1;
         end
 
         if (video_byte_counter > 255) begin
@@ -225,6 +235,9 @@ always @(posedge clk) begin
           video_state <= SM_GENERATE_PIXELS;
       end
       SM_GENERATE_PIXELS: begin
+        //$display("SM_GENERATE_PIXELS load_byte byte_counter %d pixel_shift_reg %h row_cache[%d] %h vertical_pixel_counter %d horizontal_pixel_counter %d nbit %d line_repeat_counter %d",
+        //            byte_counter, pixel_shift_reg, byte_counter, row_cache[byte_counter], vertical_pixel_counter, horizontal_pixel_counter, nbit, line_repeat_counter);         
+        
         // shift out 8 video bits
         if (nbit < 8'd7) begin
           pixel_shift_reg <= pixel_shift_reg << 1;  
@@ -233,14 +246,16 @@ always @(posedge clk) begin
         end  
         else begin
           nbit <= 8'd0;
-          tmp_byte_counter <= tmp_byte_counter + 1'd1;
-          byte_counter <= tmp_byte_counter;   
-          video_state <= SM_LOAD_BYTE;
+          horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;             
+          if(byte_counter == 7) begin
+            byte_counter <= 0;
+            video_state <= SM_VIDEO_ROW;
+          end
+          else begin
+            byte_counter <= byte_counter + 1'd1; 
+            video_state <= SM_LOAD_BYTE;
+          end
         end    
-        // return to video row state if 8 bytes have been shifted out
-        if(byte_counter == 8) begin
-          video_state <= SM_VIDEO_ROW;
-        end
       end
     endcase 
 
