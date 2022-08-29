@@ -155,21 +155,21 @@ reg [3:0] line_repeat_counter = 3'd1;
 always @(posedge clk) begin
     case (video_state)
       SM_VBLANK: begin
-        if (horizontal_pixel_counter == pixels_per_line) begin
-          horizontal_pixel_counter <= 0;
-          vertical_pixel_counter <= vertical_pixel_counter + 1'd1;
-          //$display("SM_VBLANK VBLANK: %d HBLANK: %d VPC %d HPC %d horizontal_pixel_counter == pixels_per_line", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);               
-        end
-        else begin 
-          horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;
-        end
         if (vertical_pixel_counter == vertical_start_line) begin
           video_state <= SM_VIDEO_ROW;
-          //$display("SM_VBLANK VBLANK: %d HBLANK: %d VPC %d HPC %d vertical_pixel_counter == vertical_start_line", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);        
+          //$display("SM_VBLANK VBLANK: %d HBLANK: %d VPC %d HPC %d vertical_pixel_counter == vertical_start_line", VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter);        
         end
         else if (vertical_pixel_counter == lines_per_frame) begin
           vertical_pixel_counter <= 0;
-          //$display("SM_VBLANK VBLANK: %d HBLANK: %d VPC %d HPC %d vertical_pixel_counter == lines_per_frame", vblank, hblank, vertical_pixel_counter, horizontal_pixel_counter);             
+          //$display("SM_VBLANK VBLANK: %d HBLANK: %d VPC %d HPC %d vertical_pixel_counter == lines_per_frame", VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter);             
+        end        
+        if (horizontal_pixel_counter == pixels_per_line) begin
+          horizontal_pixel_counter <= 0;
+          vertical_pixel_counter <= vertical_pixel_counter + 1'd1;
+          //$display("SM_VBLANK VBLANK: %d HBLANK: %d VPC %d HPC %d horizontal_pixel_counter == pixels_per_line", VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter);               
+        end
+        else begin 
+          horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;
         end
       end
       SM_VIDEO_ROW: begin
@@ -179,8 +179,8 @@ always @(posedge clk) begin
           //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);                
         end
         else if (horizontal_pixel_counter < horizontal_end_pixel) begin
-            //$display("SM_VIDEO_ROW 2 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d generate pixels", 
-            //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);            
+          //$display("SM_VIDEO_ROW 2 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d generate pixels", 
+          //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);            
 
           //if (line_repeat_counter < 4'd4) begin
           //  line_repeat_counter <= line_repeat_counter + 1'd1;
@@ -193,17 +193,19 @@ always @(posedge clk) begin
         end
         else if (horizontal_pixel_counter < pixels_per_line) begin
           horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;   
-            //$display("SM_VIDEO_ROW 3 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d right blank", 
-            //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);                     
+          //$display("SM_VIDEO_ROW 3 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d right blank", 
+          //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);                     
         end
         else begin
           vertical_pixel_counter <= vertical_pixel_counter + 1'd1;
           horizontal_pixel_counter <= 0;
+          //$display("SM_VIDEO_ROW 4 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d", 
+          //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);               
         end
 
         if (vertical_pixel_counter == vertical_end_line) begin
           video_state <= SM_VBLANK;
-          //$display("SM_VIDEO_ROW 4 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d vertical_pixel_counter == vertical_end_line+1", 
+          //$display("SM_VIDEO_ROW 5 VBLANK: %d HBLANK: %d VPC %d HPC %d bc %d vertical_pixel_counter == vertical_end_line+1", 
           //            VBlank, HBlank, vertical_pixel_counter, horizontal_pixel_counter, byte_counter);             
         end
       end
@@ -231,18 +233,20 @@ always @(posedge clk) begin
           video_state <= SM_GENERATE_PIXELS;
       end
       SM_GENERATE_PIXELS: begin
-        video <= pixel_shift_reg[7];
-        // shift out 8 video bits
         if (nbit < 8'd7) begin
+          //$display("SM_GENERATE_PIXELS 1 load_byte byte_counter %d pixel_shift_reg %h row_cache[%d] %h vertical_pixel_counter %d horizontal_pixel_counter %d line_repeat_counter %d",
+          //            byte_counter, pixel_shift_reg, byte_counter, row_cache[byte_counter], vertical_pixel_counter, horizontal_pixel_counter, line_repeat_counter);           
           pixel_shift_reg <= pixel_shift_reg << 1;  
           horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;
           nbit <= nbit + 1'd1;
         end  
         else begin
-          pixel_shift_reg <= 0;            
+          //$display("SM_GENERATE_PIXELS 2 load_byte byte_counter %d pixel_shift_reg %h row_cache[%d] %h vertical_pixel_counter %d horizontal_pixel_counter %d line_repeat_counter %d",
+          //            byte_counter, pixel_shift_reg, byte_counter, row_cache[byte_counter], vertical_pixel_counter, horizontal_pixel_counter, line_repeat_counter);            
           nbit <= 8'd0;
-          horizontal_pixel_counter <= horizontal_pixel_counter + 1'd1;             
+ 
           if(byte_counter == 7) begin
+            pixel_shift_reg <= 0;                
             byte_counter <= 0;
             video_state <= SM_VIDEO_ROW;
           end
@@ -250,7 +254,7 @@ always @(posedge clk) begin
             byte_counter <= byte_counter + 1'd1; 
             video_state <= SM_LOAD_BYTE;
           end
-        end    
+        end  
       end
     endcase 
 
@@ -263,6 +267,6 @@ always @(posedge clk) begin
     VBlank <= (vertical_pixel_counter   < 64 || vertical_pixel_counter   > 192) ? 1'b1 : 1'b0;  // 128 lines for NTSC  
 end
 
-//assign video = pixel_shift_reg[7];
+assign video = pixel_shift_reg[7];
 
 endmodule
