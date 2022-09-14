@@ -104,8 +104,23 @@ always @(posedge clk_sys) begin
       'h3D: btnKP1  <= 'd7; // 12'b000010000000; // Keypad1 7
       'h3E: btnKP1  <= 'd8; // 12'b000100000000; // Keypad1 8
       'h46: btnKP1  <= 'd9; // 12'b001000000000; // Keypad1 9
-      'h45: btnKP1  <= 'd0; // 12'b000000000001; // Keypad1 0
-      default: btnKP1 <= 'hff; // Keypad1
+      'h45: btnKP1  <= 'd0; // 12'b000000000001; // Keypad1 0 
+
+			'h15: btnKP2  <= 'd1; // 12'b000000000010; // Keypad2 Q
+			'h1D: btnKP2  <= 'd2; // 12'b000000000100; // Keypad2 W
+      'h24: btnKP2  <= 'd3; // 12'b000000001000; // Keypad2 E
+      'h2D: btnKP2  <= 'd4; // 12'b000000010000; // Keypad2 R
+      'h2C: btnKP2  <= 'd5; // 12'b000000100000; // Keypad2 T
+      'h35: btnKP2  <= 'd6; // 12'b000001000000; // Keypad2 Y
+      'h3C: btnKP2  <= 'd7; // 12'b000010000000; // Keypad2 U
+      'h43: btnKP2  <= 'd8; // 12'b000100000000; // Keypad2 I
+      'h44: btnKP2  <= 'd9; // 12'b001000000000; // Keypad2 O
+      'h4D: btnKP2  <= 'd0; // 12'b000000000001; // Keypad2 P 
+
+      default: begin
+        btnKP1 <= 'hff; // Keypad1
+        btnKP2 <= 'hff; // Keypad1        
+      end
 		endcase
 	end
 end
