@@ -85,8 +85,8 @@ pixie_video pixie_video (
 
 ////////////////// KEYPAD //////////////////////////////////////////////////////////////////
 
-reg  [7:0] btnKP1  = 'hff;
-reg  [7:0] btnKP2  = 'hff;
+reg  [3:0] btnKP1  = 4'b1111;
+reg  [3:0] btnKP2  = 4'b1111;
 wire       pressed = ps2_key[9];
 wire [7:0] code    = ps2_key[7:0];
 always @(posedge clk_sys) begin
@@ -95,39 +95,42 @@ always @(posedge clk_sys) begin
 
 	if(old_state != ps2_key[10]) begin
 		case(code)
-			'h16: btnKP1  <= 'd1; // 12'b000000000010; // Keypad1 1
-			'h1E: btnKP1  <= 'd2; // 12'b000000000100; // Keypad1 2
-      'h26: btnKP1  <= 'd3; // 12'b000000001000; // Keypad1 3
-      'h25: btnKP1  <= 'd4; // 12'b000000010000; // Keypad1 4
-      'h2E: btnKP1  <= 'd5; // 12'b000000100000; // Keypad1 5
-      'h36: btnKP1  <= 'd6; // 12'b000001000000; // Keypad1 6
-      'h3D: btnKP1  <= 'd7; // 12'b000010000000; // Keypad1 7
-      'h3E: btnKP1  <= 'd8; // 12'b000100000000; // Keypad1 8
-      'h46: btnKP1  <= 'd9; // 12'b001000000000; // Keypad1 9
-      'h45: btnKP1  <= 'd0; // 12'b000000000001; // Keypad1 0 
+			'h16: btnKP1  <= 4'b0001; // 12'b000000000010; // Keypad1 1     0001
+			'h1E: btnKP1  <= 4'b0010; // 12'b000000000100; // Keypad1 2     0010
+      'h26: btnKP1  <= 4'b0011; // 12'b000000001000; // Keypad1 3     0011
+      'h25: btnKP1  <= 4'b0100; // 12'b000000010000; // Keypad1 4     0100
+      'h2E: btnKP1  <= 4'b0101; // 12'b000000100000; // Keypad1 5     0101
+      'h36: btnKP1  <= 4'b0110; // 12'b000001000000; // Keypad1 6     0110
+      'h3D: btnKP1  <= 4'b0111; // 12'b000010000000; // Keypad1 7     0111
+      'h3E: btnKP1  <= 4'b1000; // 12'b000100000000; // Keypad1 8     1000
+      'h46: btnKP1  <= 4'b1001; // 12'b001000000000; // Keypad1 9     1001
+      'h45: btnKP1  <= 4'b0000; // 12'b000000000001; // Keypad1 0     0000
 
-			'h15: btnKP2  <= 'd1; // 12'b000000000010; // Keypad2 Q
-			'h1D: btnKP2  <= 'd2; // 12'b000000000100; // Keypad2 W
-      'h24: btnKP2  <= 'd3; // 12'b000000001000; // Keypad2 E
-      'h2D: btnKP2  <= 'd4; // 12'b000000010000; // Keypad2 R
-      'h2C: btnKP2  <= 'd5; // 12'b000000100000; // Keypad2 T
-      'h35: btnKP2  <= 'd6; // 12'b000001000000; // Keypad2 Y
-      'h3C: btnKP2  <= 'd7; // 12'b000010000000; // Keypad2 U
-      'h43: btnKP2  <= 'd8; // 12'b000100000000; // Keypad2 I
-      'h44: btnKP2  <= 'd9; // 12'b001000000000; // Keypad2 O
-      'h4D: btnKP2  <= 'd0; // 12'b000000000001; // Keypad2 P 
-
-      default: begin
-        btnKP1 <= 'hff; // Keypad1
-        btnKP2 <= 'hff; // Keypad1        
-      end
+			'h15: btnKP2  <= 4'b0001; // 12'b000000000010; // Keypad2 Q     0001
+			'h1D: btnKP2  <= 4'b0010; // 12'b000000000100; // Keypad2 W     0010
+      'h24: btnKP2  <= 4'b0011; // 12'b000000001000; // Keypad2 E     0011
+      'h2D: btnKP2  <= 4'b0100; // 12'b000000010000; // Keypad2 R     0100
+      'h2C: btnKP2  <= 4'b0101; // 12'b000000100000; // Keypad2 T     0101
+      'h35: btnKP2  <= 4'b0110; // 12'b000001000000; // Keypad2 Y     0110
+      'h3C: btnKP2  <= 4'b0111; // 12'b000010000000; // Keypad2 U     0111
+      'h43: btnKP2  <= 4'b1000; // 12'b000100000000; // Keypad2 I     1000
+      'h44: btnKP2  <= 4'b1001; // 12'b001000000000; // Keypad2 O     1001
+      'h4D: btnKP2  <= 4'b0000; // 12'b000000000001; // Keypad2 P     0000 
+      //default: begin
+      //  btnKP1 <= 'hff; // Keypad1
+      //  btnKP2 <= 'hff; // Keypad1        
+      //end
 		endcase
 	end
+  else begin
+    btnKP1 <= 4'b0000; // Keypad1
+    btnKP2 <= 4'b0000; // Keypad2
+  end
 end
 
 ////////////////// CPU //////////////////////////////////////////////////////////////////
 
-reg  [3:0] EF = 4'b1111;
+reg  [3:0] EF = 4'b0000;
 // 0111  EF4 Key pressed on keypad 2
 // 1011  EF3 Key pressed on keypad 1
 // 1101  EF2 not connected
@@ -142,6 +145,28 @@ always @(posedge clk_sys) begin
     else
       EF <= 4'b1111;
 end
+
+/*
+always @(posedge clk_sys) begin
+  if(EFx==0) 
+    EF <= 4'b0110;
+  else
+  //  EF <= 4'b0000;
+  if(io_n[1]==0) begin
+    if ((btnKP1 == cpu_dout[3:0]) && pressed) begin
+      EF <= EF | 4'b1000;
+      $display("btnKP1 cpu_dout[3:0] = %b  %d EF %b", cpu_dout[3:0], cpu_dout[3:0], EF);      
+    end
+    else if ((btnKP2 == cpu_dout[3:0]) && pressed) begin
+      EF <= EF | 4'b0001;    
+      $display("btnKP2 cpu_dout[3:0] = %b  %d EF %b", cpu_dout[3:0], cpu_dout[3:0], EF);
+    end
+    //else begin
+    //  EF <= EF & 4'b0001;
+    //end
+  end      
+end
+*/
 
 reg  [7:0] cpu_din;
 reg  [7:0] cpu_dout;
