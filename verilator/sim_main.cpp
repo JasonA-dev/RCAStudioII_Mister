@@ -431,8 +431,8 @@ int main(int argc, char** argv, char** env) {
 		ImGui::End();
 
 		// Debug Keypad 1
-		ImGui::Begin("Keypad 1");
-		ImGui::Text("btnKP1: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1);	
+//		ImGui::Begin("Keypad 1");
+//		ImGui::Text("btnKP1: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1);	
 		/*ImGui::Text("btnKP1_2: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_2);
 		ImGui::Text("btnKP1_3: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_3);
 		ImGui::Text("btnKP1_4: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_4);
@@ -441,25 +441,18 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("btnKP1_7: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_7);
 		ImGui::Text("btnKP1_8: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_8);
 		ImGui::Text("btnKP1_9: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_9);
-		ImGui::Text("btnKP1_0: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_0);
-		ImGui::Spacing();*/													
-		ImGui::End();
+		ImGui::Text("btnKP1_0: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP1_0);	*/						
+//		ImGui::Spacing();														
+//		ImGui::End();
 
-		// Debug Keypad 2
-		ImGui::Begin("Keypad 2");
-		ImGui::Text("btnKP2: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP2);	
-		/*ImGui::Text("btnKP2_2: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP2_2);
-		ImGui::Text("btnKP2_3: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP2_3);
-		ImGui::Text("btnKP2_4: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP2_4);
-		ImGui::Text("btnKP2_5: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP2_5);	
-		ImGui::Text("btnKP2_6: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP2_6);	
-		ImGui::Text("btnKP2_7: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP2_7);
-		ImGui::Text("btnKP2_8: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP2_8);
-		ImGui::Text("btnKP2_9: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP2_9);
-		ImGui::Text("btnKP2_0: 	0x%02X", top->top__DOT__rcastudio__DOT__btnKP2_0);
-		ImGui::Spacing();*/										
+		//PlayerA
+		ImGui::Begin("Controls");
+		ImGui::Text("Player A: 	0x%03X", top->top__DOT__rcastudio__DOT__playerA);
+		ImGui::Text("Player B: 	0x%03X", top->top__DOT__rcastudio__DOT__playerB);
+		ImGui::Text("KeyLatch: 	0x%03X", top->top__DOT__rcastudio__DOT__keylatch);
+		ImGui::Spacing();														
 		ImGui::End();
-
+		
 		// Trace/VCD window
 		ImGui::Begin(windowTitle_Trace);
 		ImGui::SetWindowPos(windowTitle_Trace, ImVec2(0, 870), ImGuiCond_Once);
