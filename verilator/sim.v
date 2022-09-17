@@ -44,9 +44,10 @@ module top(
    assign VGA_HB = HBlank;
 
    // Convert 1bpp output to 8bpp
-   assign VGA_R = {8{video}};
-   assign VGA_G = {8{video}};
-   assign VGA_B = {8{video}};
+   wire video;
+   assign VGA_R = video ? 'hFF : 'h00;
+   assign VGA_G = video ? 'hFF : 'h00;
+   assign VGA_B = video ? 'hFF : 'h00;
     
    // MAP OUTPUTS
    assign AUDIO_L = {audio,audio};
@@ -63,7 +64,6 @@ always @(posedge clk_48) old_keystb <= ps2_key[10];
 rcastudioii rcastudio
 (
 	.clk_sys(clk_48),
-   .clk_cpu(clk_24),
 	.reset(reset),
 	
 	.ioctl_download(ioctl_download),

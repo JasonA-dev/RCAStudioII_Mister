@@ -19,24 +19,25 @@
 module rcastudioii
 (
 	input              clk_sys,
-  input              clk_cpu,
+	input              clk_1m76,
+	input              clk_vid,
 	input              reset,
 	
-  input wire         ioctl_download,
-  input wire   [7:0] ioctl_index,
-  input wire         ioctl_wr,
-  input       [24:0] ioctl_addr,
+	input wire         ioctl_download,
+	input wire   [7:0] ioctl_index,
+	input wire         ioctl_wr,
+	input       [24:0] ioctl_addr,
 	input        [7:0] ioctl_dout,
 
-  input       [10:0] ps2_key,
+	input       [10:0] ps2_key,
 	input  reg         ce_pix,
 
 	output reg         HBlank,
 	output reg         HSync,
 	output reg         VBlank,
 	output reg         VSync,
-  output reg         video_de,
-	output       [7:0] video
+	output reg         video_de,
+	output             video
 );
 
 ////////////////// VIDEO //////////////////////////////////////////////////////////////////
@@ -61,8 +62,11 @@ pixie_video pixie_video (
     .clk_enable (ce_pix),     // I      
 
     .SC         (SC),         // I [1:0]
-    .disp_on    (io_n[0]),    // I
-    .disp_off   (~io_n[0]),   // I 
+    //Temp hard coded display always on.
+//    .disp_on    (io_n[0]),    // I
+//    .disp_off   (~io_n[0]),   // I 
+    .disp_on    (1'b1),    // I
+    .disp_off   (1'b0),   // I 
 
     .data_addr  (vram_addr),  // O [9:0]
     .data_in    (video_din),  // I [7:0]    
@@ -85,8 +89,11 @@ pixie_video pixie_video (
 
 ////////////////// KEYPAD //////////////////////////////////////////////////////////////////
 
-reg  [3:0] btnKP1  = 4'b1111;
-reg  [3:0] btnKP2  = 4'b1111;
+//The CPU will send out the key it wants to scan for over IO Port 1, so we latch on cpu_dout[3:0] once io_n[1] and io_out goes high.
+reg  [3:0] keylatch = 4'h0;
+always @(posedge clk_sys) if(io_n[1] && io_out) keylatch = cpu_dout[3:0];
+
+
 wire       pressed = ps2_key[9];
 wire [7:0] code    = ps2_key[7:0];
 always @(posedge clk_sys) begin
@@ -95,78 +102,38 @@ always @(posedge clk_sys) begin
 
 	if(old_state != ps2_key[10]) begin
 		case(code)
-			'h16: btnKP1  <= 4'b0001; // 12'b000000000010; // Keypad1 1     0001
-			'h1E: btnKP1  <= 4'b0010; // 12'b000000000100; // Keypad1 2     0010
-      'h26: btnKP1  <= 4'b0011; // 12'b000000001000; // Keypad1 3     0011
-      'h25: btnKP1  <= 4'b0100; // 12'b000000010000; // Keypad1 4     0100
-      'h2E: btnKP1  <= 4'b0101; // 12'b000000100000; // Keypad1 5     0101
-      'h36: btnKP1  <= 4'b0110; // 12'b000001000000; // Keypad1 6     0110
-      'h3D: btnKP1  <= 4'b0111; // 12'b000010000000; // Keypad1 7     0111
-      'h3E: btnKP1  <= 4'b1000; // 12'b000100000000; // Keypad1 8     1000
-      'h46: btnKP1  <= 4'b1001; // 12'b001000000000; // Keypad1 9     1001
-      'h45: btnKP1  <= 4'b0000; // 12'b000000000001; // Keypad1 0     0000
+			'h45: playerA[0]  <= pressed; // 12'b000000000001; // Keypad1 0
+			'h16: playerA[1]  <= pressed; // 12'b000000000010; // Keypad1 1
+			'h1E: playerA[2]  <= pressed; // 12'b000000000100; // Keypad1 2
+			'h26: playerA[3]  <= pressed; // 12'b000000001000; // Keypad1 3
+			'h25: playerA[4]  <= pressed; // 12'b000000010000; // Keypad1 4
+			'h2E: playerA[5]  <= pressed; // 12'b000000100000; // Keypad1 5
+			'h36: playerA[6]  <= pressed; // 12'b000001000000; // Keypad1 6
+			'h3D: playerA[7]  <= pressed; // 12'b000010000000; // Keypad1 7
+			'h3E: playerA[8]  <= pressed; // 12'b000100000000; // Keypad1 8
+			'h46: playerA[9]  <= pressed; // 12'b001000000000; // Keypad1 9
 
-			'h15: btnKP2  <= 4'b0001; // 12'b000000000010; // Keypad2 Q     0001
-			'h1D: btnKP2  <= 4'b0010; // 12'b000000000100; // Keypad2 W     0010
-      'h24: btnKP2  <= 4'b0011; // 12'b000000001000; // Keypad2 E     0011
-      'h2D: btnKP2  <= 4'b0100; // 12'b000000010000; // Keypad2 R     0100
-      'h2C: btnKP2  <= 4'b0101; // 12'b000000100000; // Keypad2 T     0101
-      'h35: btnKP2  <= 4'b0110; // 12'b000001000000; // Keypad2 Y     0110
-      'h3C: btnKP2  <= 4'b0111; // 12'b000010000000; // Keypad2 U     0111
-      'h43: btnKP2  <= 4'b1000; // 12'b000100000000; // Keypad2 I     1000
-      'h44: btnKP2  <= 4'b1001; // 12'b001000000000; // Keypad2 O     1001
-      'h4D: btnKP2  <= 4'b0000; // 12'b000000000001; // Keypad2 P     0000 
-      //default: begin
-      //  btnKP1 <= 'hff; // Keypad1
-      //  btnKP2 <= 'hff; // Keypad1        
-      //end
+			'h4D: playerB[0]  <= pressed; // 12'b000000000001; // Keypad2 P 
+			'h15: playerB[1]  <= pressed; // 12'b000000000010; // Keypad2 Q
+			'h1D: playerB[2]  <= pressed; // 12'b000000000100; // Keypad2 W
+			'h24: playerB[3]  <= pressed; // 12'b000000001000; // Keypad2 E
+			'h2D: playerB[4]  <= pressed; // 12'b000000010000; // Keypad2 R
+			'h2C: playerB[5]  <= pressed; // 12'b000000100000; // Keypad2 T
+			'h35: playerB[6]  <= pressed; // 12'b000001000000; // Keypad2 Y
+			'h3C: playerB[7]  <= pressed; // 12'b000010000000; // Keypad2 U
+			'h43: playerB[8]  <= pressed; // 12'b000100000000; // Keypad2 I
+			'h44: playerB[9]  <= pressed; // 12'b001000000000; // Keypad2 O
 		endcase
 	end
-  else begin
-    btnKP1 <= 4'b0000; // Keypad1
-    btnKP2 <= 4'b0000; // Keypad2
-  end
 end
+reg  [9:0] playerA = 10'h0;
+reg  [9:0] playerB = 10'h0;
+
 
 ////////////////// CPU //////////////////////////////////////////////////////////////////
 
-reg  [3:0] EF = 4'b0000;
-// 0111  EF4 Key pressed on keypad 2
-// 1011  EF3 Key pressed on keypad 1
-// 1101  EF2 not connected
-// 1110  EF1 Video display monitoring, driven by EFx from 1861
-always @(posedge clk_sys) begin
-    if ((btnKP1 != 'hff) && pressed)
-      EF <= 4'b1011;
-    else if ((btnKP2 != 'hff) && pressed)
-      EF <= 4'b0111;    
-    else if (~EFx)
-      EF <= 4'b1110;
-    else
-      EF <= 4'b1111;
-end
-
-/*
-always @(posedge clk_sys) begin
-  if(EFx==0) 
-    EF <= 4'b0110;
-  else
-  //  EF <= 4'b0000;
-  if(io_n[1]==0) begin
-    if ((btnKP1 == cpu_dout[3:0]) && pressed) begin
-      EF <= EF | 4'b1000;
-      $display("btnKP1 cpu_dout[3:0] = %b  %d EF %b", cpu_dout[3:0], cpu_dout[3:0], EF);      
-    end
-    else if ((btnKP2 == cpu_dout[3:0]) && pressed) begin
-      EF <= EF | 4'b0001;    
-      $display("btnKP2 cpu_dout[3:0] = %b  %d EF %b", cpu_dout[3:0], cpu_dout[3:0], EF);
-    end
-    //else begin
-    //  EF <= EF & 4'b0001;
-    //end
-  end      
-end
-*/
+reg  [3:0] EF = 4'b1111;
+assign EF = {playerB[keylatch], playerA[keylatch],1'b1,EFx};
 
 reg  [7:0] cpu_din;
 reg  [7:0] cpu_dout;
@@ -192,7 +159,7 @@ cdp1802 cdp1802 (
   .Q            (Q),            // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
   .EF           (EF),           // I 3:0 external flags EF1 to EF4
 
-  .WAIT_N       (wait_req),
+  .WAIT_N       (WAIT_N),
   .INT_N        (INT_N),
   .dma_in_req   (dma_in_req),
   .dma_out_req  (dma_out_req),
@@ -255,20 +222,24 @@ rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
 	.a          (romA[10:0]     )
 );
 */////////
-dpram #(.addr_width_g(12)) dpram (
-  .clk_sys    (clk_sys),        // I
 
-	.ram_cs     (ram_rd),         // I
-	.ram_we     (ram_wr),         // I
-	.ram_d      (ram_d),          // I DI
-	.ram_q      (ram_q),          // O dpram_dout
-	.ram_ad     (ram_a),          // I AB
+reg cpu_wr;
+//reg clk_mem;
+//assign clk_mem = ioctl_download ? clk_vid : clk_sys;
 
-	.ram_cs_b   (portb_ce),       // I
-	.ram_we_b   (portb_wr),       // I
-	.ram_d_b    (portb_din),      // I
-	.ram_q_b    (portb_dout),     // O
-	.ram_ad_b   (portb_addr)      // I
+assign cpu_wr = (ram_a[11:0] >= 12'h800 && ram_a[11:0] < 12'hA00) ? ram_wr : 1'b0;
+dpram #(8, 12) dpram
+(
+	.clock(clk_sys),
+	.address_a(ioctl_download ? ioctl_addr[11:0] + (ioctl_index > 0 ? 12'h0400 : 12'h0 ) : ram_a[11:0]),
+	.wren_a(ioctl_wr | cpu_wr),
+	.data_a(ioctl_download ? ioctl_dout : ram_d),
+	.q_a(ram_q),
+
+	.wren_b(1'b0),
+	.address_b(vram_addr[11:0]),
+	.data_b(),
+	.q_b(video_din)
 );
 
 ////////////////// DMA //////////////////////////////////////////////////////////////////
@@ -310,26 +281,26 @@ always @(negedge clk_sys) begin
 end
 */
 
-reg        portb_ce;
-reg        portb_wr;
-reg  [7:0] portb_din;
-reg  [7:0] portb_dout;
-reg [15:0] portb_addr;
-always @(posedge clk_sys) begin
-  portb_ce  <= 1'b0;
-  portb_wr  <= 1'b0;
-  if(ioctl_download) begin
-    portb_ce   <= ioctl_download;
-    portb_wr   <= ioctl_wr;
-    portb_din  <= ioctl_dout;
-    portb_addr <= ioctl_index==0 ? ioctl_addr : (16'h0400 + ioctl_addr);
-  end
-  else if(vram_addr >= 'h0900) begin
-    portb_ce   <= 1'b1;
-    portb_addr <= vram_addr;
-    video_din <= portb_dout;        
-  end
-end
+//reg        portb_ce;
+//reg        portb_wr;
+//reg  [7:0] portb_din;
+//reg  [7:0] portb_dout;
+//reg [15:0] portb_addr;
+//always @(posedge clk_sys) begin
+//  portb_ce  <= 1'b0;
+//  portb_wr  <= 1'b0;
+//  if(ioctl_download) begin
+//    portb_ce   <= ioctl_download;
+//    portb_wr   <= ioctl_wr;
+//    portb_din  <= ioctl_dout;
+//    portb_addr <= ioctl_index==0 ? ioctl_addr[15:0] : (16'h0400 + ioctl_addr[15:0]);
+//  end
+//  else if(vram_addr >= 'h0900) begin
+//    portb_ce   <= 1'b1;
+//    portb_addr <= vram_addr;
+//    video_din  <= portb_dout;        
+//  end
+//end
 
 // internal games still there if (0x402==2'hd1 && 0x403==2'h0e && 0x404==2'hd2 && 0x405==2'h39)
 // 0x40e = game 1
