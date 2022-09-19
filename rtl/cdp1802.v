@@ -52,10 +52,10 @@ module cdp1802 (
   // TPB    Timing Pulse
   // MEMORY_ADDR 0-7 MA0-MA7  Memory Address Lines
 
-  input               WAIT_N,     // WAIT_N
-  input               INT_N,      // INT_N
-  input               dma_in_req,
-  input               dma_out_req,
+  input               WAIT_N,      // WAIT_N
+  input               INT_N,       // INT_N
+  input               dma_in_req,  // DMA_IN_N
+  input               dma_out_req, // DMA_OUT_N
   output reg [1:0]    SC,
 
   input      [7:0]    io_din,     // IO data in
@@ -71,6 +71,14 @@ module cdp1802 (
   output     [15:0]   ram_a,      // RAM address
   input      [7:0]    ram_q,      // RAM read data
   output     [7:0]    ram_d       // RAM write data
+
+  // output TPA
+  // output TPB
+  // output SCO
+  // output SCI
+  // input WAIT_N
+  // output MWR_N
+  // output MRD_N
 );
 
   // ---------- control signals -------------------------- 
@@ -80,13 +88,16 @@ module cdp1802 (
   // ---------- execution states -------------------------
   reg [2:0] state, state_n;
 
-  localparam RESET     = 3'd0;    // hardware reset asserted
-  localparam FETCH     = 3'd1;    // fetching opcode from PC
-  localparam EXECUTE   = 3'd2;    // main exection state
-  localparam EXECUTE2  = 3'd3;    // second execute, if memory was read
-  localparam BRANCH2   = 3'd4;    // long branch, collect new PC hi-byte
-  localparam BRANCH3   = 3'd5;    // short branch, new PC lo-byte
-  localparam SKIP      = 3'd6;    // for untaken branch
+  localparam RESET     = 3'd0;    //    hardware reset asserted
+  localparam FETCH     = 3'd1;    // S0 fetching opcode from PC
+  localparam EXECUTE   = 3'd2;    // S1 main exection state
+  localparam EXECUTE2  = 3'd3;    // S1 second execute, if memory was read
+  localparam BRANCH2   = 3'd4;    //    long branch, collect new PC hi-byte
+  localparam BRANCH3   = 3'd5;    //    short branch, new PC lo-byte
+  localparam SKIP      = 3'd6;    //    for untaken
+
+  localparam DMA       = 3'd7;    // S2 DMA state
+  localparam INTERRUPT = 3'd8;    // S3 Interrupt state
 
 /*
   localparam RESET [3:0]     = 4'b0000;  // sc_execute
@@ -102,6 +113,7 @@ module cdp1802 (
 
   // ---------- registers --------------------------------
   reg [3:0] P, X;
+  reg [3:0] T;
 
   reg [15:0] R[0:15];             // 16x16 register file
   wire [3:0] Ra;                  // which register to work on this clock
@@ -134,14 +146,31 @@ module cdp1802 (
   // ---------- fetch/execute ----------------------------
   always @*
     case (state)
-    FETCH:      state_n = EXECUTE;
-    EXECUTE:
+    FETCH: begin
+      SC <= 2'b00; // SC1 0 SC0 0  S0 Fetch
+      state_n = EXECUTE;
+    end
+    EXECUTE: begin
+      SC <= 2'b01; // SC1 0 SC0 1  S1 Execute
       case (I)
       4'h3:     state_n = take ? BRANCH3 : FETCH;
       4'hc:     state_n = take ? BRANCH2 : SKIP;
       default:  state_n = ram_rd ? EXECUTE2 : FETCH;
       endcase
-    BRANCH2:    state_n = BRANCH3;
+    end
+    BRANCH2: begin
+      state_n = BRANCH3;
+    end
+    DMA: begin
+      SC <= 2'b10; // SC1 1 SC0 0  S2 DMA      
+    end
+    INTERRUPT: begin
+      //X <= T;
+      //P <= T;
+      //P <= 1'b1;
+      SC <= 2'b11; // SC1 1 SC0 1  S3 Interrupt        
+      state_n = FETCH;
+    end
     default:    state_n = FETCH;
     endcase
   assign {I, N} = (state == EXECUTE) ? ram_q : ram_q_;
