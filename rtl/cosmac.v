@@ -251,7 +251,7 @@ module cosmac (
                         {rotate_in, d[7:1]};
    
    assign r_addr = (r_addr_sel == r_addr_sel_p) ? p : 
-                   (r_addr_sel == r_addr_sel_n) ? `n : 
+                   (r_addr_sel == r_addr_sel_n) ? n : 
                    (r_addr_sel == r_addr_sel_x) ? x : 
                    (r_addr_sel == r_addr_sel_2) ? 4'h2 : 
                    4'h0;
@@ -266,7 +266,7 @@ module cosmac (
                      (data_out_sel == data_out_sel_t) ? t : 
                      d;
    
-   assign io_port = (state == state_execute & `i == inst_out[7:4]) ? `n[2:0] : 
+   assign io_port = (state == state_execute & i == inst_out[7:4]) ? n[2:0] : 
                     3'b000;
    
    assign waiting = ((wait_req == 1'b1) & (clear == 1'b0)) ? 1'b1 : 
@@ -307,9 +307,9 @@ module cosmac (
             else if (xp_sel == xp_sel_mark)
                x <= p;
             else if (xp_sel == xp_sel_sep)
-               p <= `n;
+               p <= n;
             else if (xp_sel == xp_sel_sex)
-               x <= `n;
+               x <= n;
          end
       end
    end
@@ -572,13 +572,13 @@ module cosmac (
                   r_addr_sel <= r_addr_sel_0;
                   mem_read <= 1'b1;
                end
-               else if (`i == inst_ldn[7:4])
+               else if (i == inst_ldn[7:4])
                begin
                   r_addr_sel <= r_addr_sel_n;
                   mem_read <= 1'b1;
                   d_sel <= d_sel_data_in;
                end
-               else if (`i == inst_inc[7:4])
+               else if (i == inst_inc[7:4])
                begin
                   r_addr_sel <= r_addr_sel_n;
                   adder_opb_sel <= adder_opb_sel_1;
@@ -586,7 +586,7 @@ module cosmac (
                   r_write_high <= 1'b1;
                   r_write_low <= 1'b1;
                end
-               else if (`i == inst_dec[7:4])
+               else if (i == inst_dec[7:4])
                begin
                   r_addr_sel <= r_addr_sel_n;
                   adder_opb_sel <= adder_opb_sel_m1;
@@ -594,7 +594,7 @@ module cosmac (
                   r_write_high <= 1'b1;
                   r_write_low <= 1'b1;
                end
-               else if (`i == inst_short_branch[7:4])
+               else if (i == inst_short_branch[7:4])
                begin
                   r_addr_sel <= r_addr_sel_p;
                   adder_opb_sel <= adder_opb_sel_1;
@@ -603,7 +603,7 @@ module cosmac (
                   r_write_low <= 1'b1;
                   mem_read <= 1'b1;
                end
-               else if (`i == inst_lda[7:4])
+               else if (i == inst_lda[7:4])
                begin
                   r_addr_sel <= r_addr_sel_n;
                   adder_opb_sel <= adder_opb_sel_1;
@@ -613,13 +613,13 @@ module cosmac (
                   mem_read <= 1'b1;
                   d_sel <= d_sel_data_in;
                end
-               else if (`i == inst_str[7:4])
+               else if (i == inst_str[7:4])
                begin
                   r_addr_sel <= r_addr_sel_n;
                   data_out_sel <= data_out_sel_d;
                   mem_write <= 1'b1;
                end
-               else if (`i == inst_out[7:4] & `n[3] == 1'b0)
+               else if (i == inst_out[7:4] & n[3] == 1'b0)
                begin
                   r_addr_sel <= r_addr_sel_x;
                   adder_opb_sel <= adder_opb_sel_1;
@@ -628,7 +628,7 @@ module cosmac (
                   r_write_low <= 1'b1;
                   mem_read <= 1'b1;
                end
-               else if (`i == inst_inp[7:4] & `n[3] == 1'b1)
+               else if (i == inst_inp[7:4] & n[3] == 1'b1)
                begin
                   r_addr_sel <= r_addr_sel_x;
                   mem_write <= 1'b1;
@@ -712,26 +712,26 @@ module cosmac (
                   d_sel <= d_sel_shifter;
                   df_sel <= df_sel_d7;
                end
-               else if (`i == inst_glo[7:4] | `i == inst_ghi[7:4])
+               else if (i == inst_glo[7:4] | i == inst_ghi[7:4])
                begin
                   r_addr_sel <= r_addr_sel_n;
                   d_sel <= d_sel_r;
                end
-               else if (`i == inst_plo[7:4])
+               else if (i == inst_plo[7:4])
                begin
                   r_addr_sel <= r_addr_sel_n;
                   r_write_data_sel <= r_write_data_sel_d;
                   r_write_high <= 1'b0;
                   r_write_low <= 1'b1;
                end
-               else if (`i == inst_phi[7:4])
+               else if (i == inst_phi[7:4])
                begin
                   r_addr_sel <= r_addr_sel_n;
                   r_write_data_sel <= r_write_data_sel_d;
                   r_write_high <= 1'b1;
                   r_write_low <= 1'b0;
                end
-               else if (`i == inst_long_branch_skip[7:4])
+               else if (i == inst_long_branch_skip[7:4])
                begin
                   next_state <= state_execute_2;
                   if (ir[2] == 1'b0)
@@ -755,9 +755,9 @@ module cosmac (
                      r_write_low <= 1'b1;
                   end
                end
-               else if (`i == inst_sep[7:4])
+               else if (i == inst_sep[7:4])
                   xp_sel <= xp_sel_sep;
-               else if (`i == inst_sex[7:4])
+               else if (i == inst_sex[7:4])
                   xp_sel <= xp_sel_sex;
                else if (ir == inst_ldx)
                begin

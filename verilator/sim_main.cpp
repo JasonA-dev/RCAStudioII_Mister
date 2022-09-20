@@ -356,8 +356,6 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("SC:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__SC);	
 		ImGui::Text("TPA:          0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__TPA);	
 		ImGui::Text("TPB:          0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__TPB);	
-		ImGui::Text("MWR_N:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__MWR_N);	
-		ImGui::Text("MRD_N:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__MRD_N);	
 		ImGui::Spacing();	
 		ImGui::Text("dma_in_req:   0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__dma_in_req);	
 		ImGui::Text("dma_out_req:  0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__dma_out_req);					

@@ -21,9 +21,9 @@
 
 module cdp1802 (
   input               CLOCK,      // CLOCK
-  input               CLEAR_N,    // CLEAR_N
+  input               CLEAR_N,    // CLEAR_N   (RESET)
 
-  output reg          Q,          // external pin Q
+  output reg          Q,          // external pin Q 
   input      [3:0]    EF,         // external flags EF1 to EF4, separate pins negative
 
   // WAIT CLEAR  Control Lines
@@ -66,35 +66,35 @@ module cdp1802 (
 
   output              unsupported,// unsupported instruction signal
 
-  output              ram_rd,     // RAM read enable 
-  output              ram_wr,     // RAM write enable
+  output              ram_rd,     // RAM read enable      // MRD_N
+  output              ram_wr,     // RAM write enable     // MWR_N
   output     [15:0]   ram_a,      // RAM address
   input      [7:0]    ram_q,      // RAM read data
   output     [7:0]    ram_d,      // RAM write data
 
-  output              TPA,
-  output              TPB,
-  output              MWR_N,      
-  output              MRD_N
+  output              TPA,        // Timing Pulse  (RAM)
+  output              TPB         // Timing Pulse  (IO)
 );
 
   // ---------- control signals -------------------------- 
-  //reg waiting;
+  //reg   waiting;
   //assign waiting = (wait_req && resetq) ? 1'b1 : 1'b0;  
+  reg   IE;   // Interrupt Enable
 
   // ---------- execution states -------------------------
-  reg [2:0] state, state_n = 3'd0;
+  reg [3:0] state, state_n = 4'd0;
 
-  localparam RESET     = 3'd0;    //    hardware reset asserted
-  localparam FETCH     = 3'd1;    // S0 fetching opcode from PC
-  localparam EXECUTE   = 3'd2;    // S1 main exection state
-  localparam EXECUTE2  = 3'd3;    // S1 second execute, if memory was read
-  localparam BRANCH2   = 3'd4;    //    long branch, collect new PC hi-byte
-  localparam BRANCH3   = 3'd5;    //    short branch, new PC lo-byte
-  localparam SKIP      = 3'd6;    //    for untaken
+  localparam RESET     = 4'd0;    //    hardware reset asserted
+  localparam FETCH     = 4'd1;    // S0 fetching opcode from PC
+  localparam EXECUTE   = 4'd2;    // S1 main exection state
+  localparam EXECUTE2  = 4'd3;    // S1 second execute, if memory was read
+  localparam BRANCH2   = 4'd4;    //    long branch, collect new PC hi-byte
+  localparam BRANCH3   = 4'd5;    //    short branch, new PC lo-byte
+  localparam SKIP      = 4'd6;    //    for untaken
 
-  localparam DMA       = 3'd7;    // S2 DMA state
-  localparam INTERRUPT = 3'd8;    // S3 Interrupt state
+  localparam DMA_IN    = 4'd7;    // S2 DMA_IN state
+  localparam DMA_OUT   = 4'd8;    // S2 DMA_OUT state
+  localparam INTERRUPT = 4'd9;    // S3 Interrupt state
 
 /*
   localparam RESET [3:0]     = 4'b0000;  // sc_execute
@@ -150,6 +150,18 @@ module cdp1802 (
       state_n = EXECUTE;
     end
     EXECUTE: begin
+      /*
+      if (dma_in_req == 1'b1)
+        state_n <= DMA_IN;
+      else if (dma_out_req == 1'b1)
+        state_n <= DMA_OUT;
+      else if (INT_N == 1'b1 & IE == 1'b1)
+        state_n <= INTERRUPT;
+      else if (ir == inst_idl)
+        state_n <= EXECUTE;
+      else
+        state_n <= FETCH;
+      */
       SC <= 2'b01; // SC1 0 SC0 1  S1 Execute
       case (I)
       4'h3:     state_n = take ? BRANCH3 : FETCH;
@@ -161,10 +173,14 @@ module cdp1802 (
       $display("state_n BRANCH2");
       state_n = BRANCH3;
     end
-    DMA: begin
-      $display("state_n DMA");
+    DMA_IN: begin
+      $display("state_n DMA_IN");
       SC <= 2'b10; // SC1 1 SC0 0  S2 DMA      
     end
+    DMA_OUT: begin
+      $display("state_n DMA_OUT");
+      SC <= 2'b10; // SC1 1 SC0 0  S2 DMA      
+    end    
     INTERRUPT: begin
       $display("state_n INTERRUPT");
       SC <= 2'b11; // SC1 1 SC0 1  S3 Interrupt        
@@ -300,11 +316,14 @@ module cdp1802 (
           T[3:0] <= P;
           //X <= 2;
           //P <= 1;          
-          //INT_ENABLE <= 0;
+          IE <= 0;
           $display("Interrupt");
         end
-        else if(state == DMA) begin
-          $display("DMA");
+        else if(state == DMA_IN) begin
+          $display("DMA_IN");
+        end
+        else if(state == DMA_OUT) begin
+          $display("DMA_OUT");
         end
       end
       // Clear 0 Wait 0 Load      if (clear_ == 0 && wait_==0) cpuMode_ = LOAD;

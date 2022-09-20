@@ -53,7 +53,6 @@ wire        EFx;
 wire        Locked;
 
 reg         vram_rd;
-//reg         vram_ack;
 
 pixie_video pixie_video (
     // front end, CDP1802 bus clock domain
@@ -146,7 +145,6 @@ reg  [7:0] cpu_ram_din;
 reg  [7:0] cpu_ram_dout;
 
 reg WAIT_N      = 1'b0;
-//reg INT_N       = 1'b0;
 reg dma_in_req  = 1'b0;
 //reg dma_out_req = 1'b0;
 
@@ -175,18 +173,15 @@ cdp1802 cdp1802 (
 
   .unsupported  (unsupported),  // O
 
-  .ram_rd       (ram_rd),       // O
-  .ram_wr       (ram_wr),       // O
+  .ram_rd       (ram_rd),       // O    MRD_N
+  .ram_wr       (ram_wr),       // O    MWR_N
   .ram_a        (ram_a),        // O cpu_ram_addr
   .ram_q        (ram_q),        // I DI
   .ram_d        (ram_d),        // O cpu_ram_dout
 
   .TPA          (TPA),          // O
-  .TPB          (TPB),          // O
-  .MWR_N        (MWR_N),        // O
-  .MRD_N        (MRD_N)         // O
+  .TPB          (TPB)           // O
 );
-
 /*
 cosmac cosmac (
    .clk         (clk_sys),     // I
@@ -233,7 +228,6 @@ rom #(.AW(11), .FN("../rom/studio2.hex")) Rom_StudioII
 reg cpu_wr;
 //reg clk_mem;
 //assign clk_mem = ioctl_download ? clk_vid : clk_sys;
-
 assign cpu_wr = (ram_a[11:0] >= 12'h800 && ram_a[11:0] < 12'hA00) ? ram_wr : 1'b0;
 dpram #(8, 12) dpram
 (
