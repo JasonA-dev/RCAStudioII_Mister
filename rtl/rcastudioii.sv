@@ -93,7 +93,6 @@ pixie_video pixie_video (
 reg  [3:0] keylatch = 4'h0;
 always @(posedge clk_sys) if(io_n[1] && io_out) keylatch = cpu_dout[3:0];
 
-
 wire       pressed = ps2_key[9];
 wire [7:0] code    = ps2_key[7:0];
 always @(posedge clk_sys) begin
@@ -129,7 +128,6 @@ end
 reg  [9:0] playerA = 10'h0;
 reg  [9:0] playerB = 10'h0;
 
-
 ////////////////// CPU //////////////////////////////////////////////////////////////////
 
 reg  [3:0] EF = 4'b1111;
@@ -148,10 +146,14 @@ reg  [7:0] cpu_ram_din;
 reg  [7:0] cpu_ram_dout;
 
 reg WAIT_N      = 1'b0;
-reg INT_N       = 1'b0;
+//reg INT_N       = 1'b0;
 reg dma_in_req  = 1'b0;
-reg dma_out_req = 1'b0;
+//reg dma_out_req = 1'b0;
 
+wire TPA;
+wire TPB;
+wire MWR_N;
+wire MRD_N;
 cdp1802 cdp1802 (
   .CLOCK        (clk_sys),
   .CLEAR_N      (~reset),
@@ -159,25 +161,30 @@ cdp1802 cdp1802 (
   .Q            (Q),            // O external pin Q Turns the sound off and on. When logic '1', the beeper is on.
   .EF           (EF),           // I 3:0 external flags EF1 to EF4
 
-  .WAIT_N       (WAIT_N),
-  .INT_N        (INT_N),
-  .dma_in_req   (dma_in_req),
-  .dma_out_req  (dma_out_req),
-  .SC           (SC),
+  .WAIT_N       (WAIT_N),       // I
+  .INT_N        (~INT),         // I
+  .dma_in_req   (dma_in_req),   // I
+  .dma_out_req  (DMAO),         // I  TODO: check
+  .SC           (SC),           // O
 
-  .io_din       (cpu_din),     
-  .io_dout      (cpu_dout),    
+  .io_din       (cpu_din),      // I
+  .io_dout      (cpu_dout),     // O
   .io_n         (io_n),         // O 2:0 IO control lines: N2,N1,N0  (N0 used for display on/off)
   .io_inp       (io_inp),       // O IO input signal
   .io_out       (io_out),       // O IO output signal
 
-  .unsupported  (unsupported),
+  .unsupported  (unsupported),  // O
 
   .ram_rd       (ram_rd),       // O
   .ram_wr       (ram_wr),       // O
   .ram_a        (ram_a),        // O cpu_ram_addr
   .ram_q        (ram_q),        // I DI
-  .ram_d        (ram_d)         // O cpu_ram_dout
+  .ram_d        (ram_d),        // O cpu_ram_dout
+
+  .TPA          (TPA),          // O
+  .TPB          (TPB),          // O
+  .MWR_N        (MWR_N),        // O
+  .MRD_N        (MRD_N)         // O
 );
 
 /*

@@ -333,6 +333,7 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Begin("CDP 1802 Registers");
 		ImGui::Text("P:       0x%04X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__P);	
 		ImGui::Text("X:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__X);
+		ImGui::Text("T:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__T);
 		ImGui::Text("R:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__R);	
 		ImGui::Text("Ra:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Ra);			
 		ImGui::Text("Rrd:     0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Rrd);	
@@ -346,9 +347,20 @@ int main(int argc, char** argv, char** env) {
 		ImGui::End();
 
 		ImGui::Begin("CDP 1802");
+		ImGui::Text("RESET:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__RESET);	
+		ImGui::Text("CLEAR_N:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__CLEAR_N);	
+		ImGui::Text("WAIT_N:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__WAIT_N);	
+		ImGui::Text("INT_N:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__INT_N);									
 		ImGui::Text("Q:            0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__Q);	
 		ImGui::Text("EF:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__EF);
+		ImGui::Text("SC:           0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__SC);	
+		ImGui::Text("TPA:          0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__TPA);	
+		ImGui::Text("TPB:          0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__TPB);	
+		ImGui::Text("MWR_N:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__MWR_N);	
+		ImGui::Text("MRD_N:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__MRD_N);	
 		ImGui::Spacing();	
+		ImGui::Text("dma_in_req:   0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__dma_in_req);	
+		ImGui::Text("dma_out_req:  0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__dma_out_req);					
 		ImGui::Text("io_din:       0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_din);	
 		ImGui::Text("io_dout:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_dout);
 		ImGui::Text("io_n:         0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__io_n);	
@@ -362,7 +374,9 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("ram_a:        0x%04X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_a);	
 		ImGui::Text("ram_q:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_q);			
 		ImGui::Text("ram_d:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__ram_d);			
-		ImGui::Spacing();		
+		ImGui::Spacing();	
+		ImGui::Text("state:        0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__state);				
+		ImGui::Text("state_n:      0x%02X", top->top__DOT__rcastudio__DOT__cdp1802__DOT__state_n);			
 		ImGui::End();
 
 		// Debug Pixie Video

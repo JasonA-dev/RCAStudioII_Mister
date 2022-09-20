@@ -56,7 +56,7 @@ module cdp1802 (
   input               INT_N,       // INT_N
   input               dma_in_req,  // DMA_IN_N
   input               dma_out_req, // DMA_OUT_N
-  output reg [1:0]    SC,
+  output reg [1:0]    SC,          // SC1 SC0
 
   input      [7:0]    io_din,     // IO data in
   output     [7:0]    io_dout,    // IO data out
@@ -66,19 +66,16 @@ module cdp1802 (
 
   output              unsupported,// unsupported instruction signal
 
-  output              ram_rd,     // RAM read enable
+  output              ram_rd,     // RAM read enable 
   output              ram_wr,     // RAM write enable
   output     [15:0]   ram_a,      // RAM address
   input      [7:0]    ram_q,      // RAM read data
-  output     [7:0]    ram_d       // RAM write data
+  output     [7:0]    ram_d,      // RAM write data
 
-  // output TPA
-  // output TPB
-  // output SCO
-  // output SCI
-  // input WAIT_N
-  // output MWR_N
-  // output MRD_N
+  output              TPA,
+  output              TPB,
+  output              MWR_N,      
+  output              MRD_N
 );
 
   // ---------- control signals -------------------------- 
@@ -86,7 +83,7 @@ module cdp1802 (
   //assign waiting = (wait_req && resetq) ? 1'b1 : 1'b0;  
 
   // ---------- execution states -------------------------
-  reg [2:0] state, state_n;
+  reg [2:0] state, state_n = 3'd0;
 
   localparam RESET     = 3'd0;    //    hardware reset asserted
   localparam FETCH     = 3'd1;    // S0 fetching opcode from PC
@@ -112,8 +109,9 @@ module cdp1802 (
 */ 
 
   // ---------- registers --------------------------------
-  reg [3:0] P, X;
-  reg [3:0] T;
+  reg [3:0] P;                    // Program Counter
+  reg [3:0] X;                    // Data Pointer
+  reg [7:0] T;
 
   reg [15:0] R[0:15];             // 16x16 register file
   wire [3:0] Ra;                  // which register to work on this clock
@@ -143,11 +141,12 @@ module cdp1802 (
     endcase
   wire take = sense ^ N[3];
 
-  // ---------- fetch/execute ----------------------------
+  // ---------- fetch/interrupt/dma/execute ----------------------------
   always @*
     case (state)
     FETCH: begin
       SC <= 2'b00; // SC1 0 SC0 0  S0 Fetch
+      //$display("state_n FETCH");
       state_n = EXECUTE;
     end
     EXECUTE: begin
@@ -159,19 +158,22 @@ module cdp1802 (
       endcase
     end
     BRANCH2: begin
+      $display("state_n BRANCH2");
       state_n = BRANCH3;
     end
     DMA: begin
+      $display("state_n DMA");
       SC <= 2'b10; // SC1 1 SC0 0  S2 DMA      
     end
     INTERRUPT: begin
-      //X <= T;
-      //P <= T;
-      //P <= 1'b1;
+      $display("state_n INTERRUPT");
       SC <= 2'b11; // SC1 1 SC0 1  S3 Interrupt        
       state_n = FETCH;
     end
-    default:    state_n = FETCH;
+    default: begin
+      //$display("state_n default");
+      state_n = FETCH;
+    end
     endcase
   assign {I, N} = (state == EXECUTE) ? ram_q : ram_q_;
 
@@ -248,18 +250,36 @@ module cdp1802 (
   assign io_inp = (I == 4'h6) & N[3] & (state == EXECUTE) & (N[2:0] != 3'b000);
   assign io_dout = ram_q;
   assign unsupported = {I, N} == 8'h70;
-
+  /*
+  always @(posedge CLOCK) begin
+    if(unsupported) begin
+      $display("Unsupported instruction: %h", {I, N});
+    end
+  end
+  */
   // ---------- cycle commit -----------------------------
   always @(negedge CLEAR_N or posedge CLOCK) begin
+    // CLEAR WAIT Control Lines
+    // Clear 0 Wait 0 Load
+    // Clear 0 Wait 1 Reset
+    // Clear 1 Wait 0 Pause
+    // Clear 1 Wait 1 Run
     // Reset
-    if (!CLEAR_N) begin
+    /*
+    if (cpuMode_ != RUN)
+    {
+        if (p_Video != NULL)
+            p_Video->reset();
+    }
+    */
+    if (!CLEAR_N) begin  // WAIT_N ??   if (clear_ == 0 && wait_==1)
         {ram_q_, Q, P, X} <= 0;
         {DF, D} <= 9'd0;
         R[0] <= 16'd0;
         state <= RESET;
       end 
     else begin
-      if(!WAIT_N && CLEAR_N) begin
+      if(!WAIT_N && CLEAR_N) begin  // Pause  if (clear_ == 1 && wait_==0) cpuMode_ = PAUSE;
         state <= state_n;
         if (state == EXECUTE)
           {ram_q_, Q, P, X} <= {ram_q, Q_n, P_n, X_n};
@@ -269,6 +289,31 @@ module cdp1802 (
           {DF, D} <= DFD_n;
         if (state == BRANCH2)
           B <= ram_q;
+        if(state == INTERRUPT) begin
+          /*
+            registerT_= (dataPointer_<<4) | programCounter_;
+            dataPointer_=2;
+            programCounter_=1;
+            interruptEnable_=0;          
+          */
+          T[7:4] <= X;
+          T[3:0] <= P;
+          //X <= 2;
+          //P <= 1;          
+          //INT_ENABLE <= 0;
+          $display("Interrupt");
+        end
+        else if(state == DMA) begin
+          $display("DMA");
+        end
+      end
+      // Clear 0 Wait 0 Load      if (clear_ == 0 && wait_==0) cpuMode_ = LOAD;
+      else if(!CLEAR_N && !WAIT_N) begin
+        $display("Load");
+      end
+      // Clear 1 Wait 1 Run  if (clear_ == 1 && wait_==1) cpuMode_ = RUN;
+      else if(CLEAR_N && WAIT_N) begin
+        $display("Run");
       end
     end
   end
