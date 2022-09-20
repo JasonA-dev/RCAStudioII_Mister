@@ -109,20 +109,20 @@ module cdp1802 (
 */ 
 
   // ---------- registers --------------------------------
-  reg [3:0] P;                    // Program Counter
-  reg [3:0] X;                    // Data Pointer
-  reg [7:0] T;
+  reg   [3:0] P;                  // Program Counter
+  reg   [3:0] X;                  // Data Pointer
+  reg   [7:0] T;                  // Temporary Register
 
-  reg [15:0] R[0:15];             // 16x16 register file
-  wire [3:0] Ra;                  // which register to work on this clock
+  reg  [15:0] R[0:15];            // 16x16 register file
+  wire  [3:0] Ra;                 // which register to work on this clock
   wire [15:0] Rrd = R[Ra];        // read out the selected register
-  reg [15:0] Rwd;                 // write-back value for the register
+  reg  [15:0] Rwd;                // write-back value for the register
 
-  reg [7:0] D;                    // data register (accumulator)
-  reg DF;                         // data flag (ALU carry)
-  reg [7:0] B;                    // used for hi-byte of long branch
-  reg [7:0] ram_q_;               // registered copy of ram_q, for multi-cycle ops
-  wire [3:0] I, N;                // the current instruction
+  reg   [7:0] D;                  // data register (accumulator)
+  reg         DF;                 // data flag (ALU carry)
+  reg   [7:0] B;                  // used for hi-byte of long branch
+  reg   [7:0] ram_q_;             // registered copy of ram_q, for multi-cycle ops
+  wire  [3:0] I, N;               // the current instruction
 
   // ---------- RAM hookups ------------------------------
   assign ram_d = (I == 4'h6) ? io_din : D;
@@ -150,24 +150,28 @@ module cdp1802 (
       state_n = EXECUTE;
     end
     EXECUTE: begin
-      /*
+      SC <= 2'b01; // SC1 0 SC0 1  S1 Execute
+      /* 
       if (dma_in_req == 1'b1)
         state_n <= DMA_IN;
       else if (dma_out_req == 1'b1)
         state_n <= DMA_OUT;
       else if (INT_N == 1'b1 & IE == 1'b1)
         state_n <= INTERRUPT;
-      else if (ir == inst_idl)
+      else begin
+      */
+        case (I)
+          4'h3:     state_n = take ? BRANCH3 : FETCH;
+          4'hc:     state_n = take ? BRANCH2 : SKIP;
+          default:  state_n = ram_rd ? EXECUTE2 : FETCH;
+        endcase
+      //end
+      /*
+      if (ir == inst_idl)
         state_n <= EXECUTE;
       else
         state_n <= FETCH;
       */
-      SC <= 2'b01; // SC1 0 SC0 1  S1 Execute
-      case (I)
-      4'h3:     state_n = take ? BRANCH3 : FETCH;
-      4'hc:     state_n = take ? BRANCH2 : SKIP;
-      default:  state_n = ram_rd ? EXECUTE2 : FETCH;
-      endcase
     end
     BRANCH2: begin
       $display("state_n BRANCH2");
@@ -305,7 +309,7 @@ module cdp1802 (
           {DF, D} <= DFD_n;
         if (state == BRANCH2)
           B <= ram_q;
-        if(state == INTERRUPT) begin
+        if (state == INTERRUPT) begin
           /*
             registerT_= (dataPointer_<<4) | programCounter_;
             dataPointer_=2;
@@ -318,12 +322,76 @@ module cdp1802 (
           //P <= 1;          
           IE <= 0;
           $display("Interrupt");
+            /*
+            begin
+               SC <= sc_interrupt;
+               if (dma_in_req == 1'b1)
+                  next_state <= DMA_IN;
+               else if (dma_out_req == 1'b1)
+                  next_state <= DMA_OUT;
+               else
+                  next_state <= FETCH;
+               load_t <= 1'b1;
+               xp_sel <= xp_sel_interrupt;
+               ie_sel <= ie_sel_0;
+            end
+            */
         end
         else if(state == DMA_IN) begin
           $display("DMA_IN");
+            /*
+            begin
+               SC <= sc_dma;
+               r_addr_sel <= r_addr_sel_0;
+               adder_opb_sel <= adder_opb_sel_1;
+               r_write_data_sel <= r_write_data_sel_adder;
+               r_write_high <= 1'b1;
+               r_write_low <= 1'b1;
+               mem_write <= 1'b1;
+               if (dma_in_req == 1'b1)
+                  next_state <= DMA_IN;
+               else if (dma_out_req == 1'b1)
+                  next_state <= DMA_OUT;
+               else if (clear == 1'b1)
+               begin
+                  r_write_high <= 1'b0;
+                  r_write_low <= 1'b0;
+                  next_state <= state_load;
+               end
+               else if (INT_N == 1'b1 & IE == 1'b1)
+                  next_state <= INTERRUPT;
+               else
+                  next_state <= FETCH;
+            end
+            */
         end
         else if(state == DMA_OUT) begin
           $display("DMA_OUT");
+            /*
+            begin
+               SC <= sc_dma;
+               r_addr_sel <= r_addr_sel_0;
+               adder_opb_sel <= adder_opb_sel_1;
+               r_write_data_sel <= r_write_data_sel_adder;
+               r_write_high <= 1'b1;
+               r_write_low <= 1'b1;
+               mem_read <= 1'b1;
+               if (dma_in_req == 1'b1)
+                  next_state <= DMA_IN;
+               else if (dma_out_req == 1'b1)
+                  next_state <= DMA_OUT;
+               else if (clear == 1'b1)
+               begin
+                  r_write_high <= 1'b0;
+                  r_write_low <= 1'b0;
+                  next_state <= state_load;
+               end
+               else if (int_req == 1'b1 & ie == 1'b1)
+                  next_state <= INTERRUPT;
+               else
+                  next_state <= FETCH;
+            end
+            */
         end
       end
       // Clear 0 Wait 0 Load      if (clear_ == 0 && wait_==0) cpuMode_ = LOAD;
