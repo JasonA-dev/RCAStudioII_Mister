@@ -72,8 +72,8 @@ module cdp1802 (
   input      [7:0]    ram_q,      // RAM read data
   output     [7:0]    ram_d,      // RAM write data
 
-  output              TPA,        // Timing Pulse  (RAM)
-  output              TPB         // Timing Pulse  (IO)
+  output  reg         TPA,        // Timing Pulse  (RAM)
+  output  reg         TPB         // Timing Pulse  (IO)
 );
 
   // ---------- control signals -------------------------- 
@@ -127,6 +127,23 @@ module cdp1802 (
   // ---------- RAM hookups ------------------------------
   assign ram_d = (I == 4'h6) ? io_din : D;
   assign ram_a = Rrd;             // RAM address always one of the 16-bit regs
+
+  // TPA TPB
+  // TPA occurs every 8 cycles, TPA precedes TPB
+  reg [7:0] TP_counter = 0;
+  reg TPA_ = 0;
+  reg TPB_ = 1;
+  assign TPA = TPA_;
+  assign TPB = TPB_;
+  always @(posedge CLOCK) begin
+    if(TP_counter == 7) begin
+      TPA_ <= ~TPA_;
+      TPB_ <= ~TPB_;
+      TP_counter <= 0;
+    end
+    else
+      TP_counter <= TP_counter + 1;
+  end
 
   // ---------- conditional branch -----------------------
   reg sense;

@@ -38,9 +38,9 @@ module pixie_video_studioii
     input              disp_off,
     input        [7:0] data_in,
 
-    output wire        DMAO,
-    output reg         INT,
-    output reg         EFx,
+    output wire        DMAO, 
+    output reg         INT,  // Interrupt
+    output reg         EFx,  // Display Status
 
     output      [15:0] mem_addr
 );

@@ -173,14 +173,14 @@ cdp1802 cdp1802 (
 
   .unsupported  (unsupported),  // O
 
-  .ram_rd       (ram_rd),       // O    MRD_N
-  .ram_wr       (ram_wr),       // O    MWR_N
+  .ram_rd       (ram_rd),       // O MRD_N
+  .ram_wr       (ram_wr),       // O MWR_N
   .ram_a        (ram_a),        // O cpu_ram_addr
   .ram_q        (ram_q),        // I DI
   .ram_d        (ram_d),        // O cpu_ram_dout
 
-  .TPA          (TPA),          // O
-  .TPB          (TPB)           // O
+  .TPA          (TPA),          // O Timing Pulse  (RAM)
+  .TPB          (TPB)           // O Timing Pulse  (IO)
 );
 /*
 cosmac cosmac (
