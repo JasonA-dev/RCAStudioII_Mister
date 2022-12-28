@@ -37,6 +37,8 @@ module pixie_video_studioii
     input              disp_on,
     input              disp_off,
     input        [7:0] data_in,
+    input              TPA,
+    input              TPB,
 
     output wire        DMAO,
     output reg         INT,
@@ -96,8 +98,17 @@ reg   [8:0] vertical_pixel_counter = 1;
 
 ////////////////////////// assignments  ////////////////////////////////////////////////////////////////////////////////
 
-assign DMAO      = (display_enabled && VBlank==1'b0 && horizontal_pixel_counter >= 1 && horizontal_pixel_counter < 9) ? 1'b0 : 1'b1;
+assign DMAO      = (display_enabled && vertical_pixel_counter >= 'd80 && vertical_pixel_counter <= 'd207 && horizontal_pixel_counter >= 'd3 && horizontal_pixel_counter < 'd9) ? 1'b0 : 1'b1;
+//assign DMAO      = (display_enabled && VBlank==1'b0 && horizontal_pixel_counter >= 1 && horizontal_pixel_counter < 9) ? 1'b0 : 1'b1;
 assign DMA_xfer  = (display_enabled && SC_dma) ? 1'b1 : 1'b0;
+
+/*
+  		//DMA Logic
+  		if(lineCounter >= 'd80 && lineCounter <= 'd207 && ((MCycleCounter == 'd2 && TPA) || MCycleCounter >= 'd3 && MCycleCounter <= 'd19) && DisplayOn)
+    		DMAO <= 1'b0;
+  		else 
+    		DMAO <= 1'b1;
+*/
 
 assign csync     = ~(HSync ^ VSync);
 assign video_de  = ~(VBlank | HBlank);

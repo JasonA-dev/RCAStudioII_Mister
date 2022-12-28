@@ -44,7 +44,7 @@ module rcastudioii
 
 wire        Disp_On;
 wire        Disp_Off;
-reg  [1:0]  SC = 2'b10;
+//reg  [1:0]  SC = 2'b10;
 reg  [7:0]  video_din;
 
 wire        INT;
@@ -55,6 +55,7 @@ wire        Locked;
 reg         vram_rd;
 //reg         vram_ack;
 
+/*
 pixie_video pixie_video (
     // front end, CDP1802 bus clock domain
     .clk        (clk_sys),    // I
@@ -86,6 +87,44 @@ pixie_video pixie_video (
     .HBlank     (HBlank),     // O
     .video_de   (video_de)    // O    
 );
+*/
+
+	//*** interconnects
+	assign WAIT_N = 1'b1;		// "tied off" signals
+	assign DMAI_N = 1'b1;
+
+  assign pixie_on = ((N == 3'b001) & MRD_N & TPB);
+	assign pixie_off = ((N == 3'b001) & (!MRD_N) & TPB);
+
+	//reg  [3:0] ef_n;				
+	//assign EF2_N = !ef_n[1];	// invert EF2 for serial RXD
+	//assign EF3_N = ef_n[2];		// keypad / keyboard strobe
+	//assign EF4_N = ef_n[3];		// GPIO input strobe
+	//*** PIXIE (CDP1861) graphics module (port 1)
+	//-- it's not a VIP without PIXIE graphics!
+	pixie	PIXIE
+	(
+		.clock_n			(XTAL_N),
+		.reset_n			(~reset),
+		.sc					  (SC),
+		.tpa					(TPA),
+		.tpb					(TPB),
+		.disp_on			(pixie_on),
+		.disp_off			(pixie_off),
+		.di					  (video_din),
+		.clear_n			(),			// clear output is not used
+		.int_n				(INT_N),
+		.efx_n				(ef_n),
+		.dmao_n				(DMAO_N),
+		.comp_sync_n	(sync_n),
+		.video				(video),
+		.vsync_out		(VSync),	      // for debugging
+		.hsync_out		(HSync),		  	// for debugging
+		.VBlank		    (VBlank),				// for debugging
+		.HBlank		    (HBlank),				// for debugging      
+    .video_de     (video_de)      //        
+	);
+
 
 ////////////////// KEYPAD //////////////////////////////////////////////////////////////////
 
@@ -133,7 +172,8 @@ reg  [9:0] playerB = 10'h0;
 ////////////////// CPU //////////////////////////////////////////////////////////////////
 
 reg  [3:0] EF = 4'b1111;
-assign EF = {playerB[keylatch], playerA[keylatch],1'b1,EFx};
+assign EF = {playerB[keylatch], playerA[keylatch],1'b1,ef_n};
+//assign EF = {playerB[keylatch], playerA[keylatch],1'b1,EFx};
 
 reg  [7:0] cpu_din;
 reg  [7:0] cpu_dout;
@@ -151,6 +191,8 @@ reg WAIT_N      = 1'b0;
 reg INT_N       = 1'b0;
 reg dma_in_req  = 1'b0;
 reg dma_out_req = 1'b0;
+
+/*
 
 cdp1802 cdp1802 (
   .CLOCK        (clk_sys),
@@ -179,6 +221,59 @@ cdp1802 cdp1802 (
   .ram_q        (ram_q),        // I DI
   .ram_d        (ram_d)         // O cpu_ram_dout
 );
+*/
+
+	// 1802 signals
+	//reg  SYSCLK;							// processor input clock 1.76 MHz
+	//reg CLEAR_N;							// processor clear (RUN or POR)
+	//wire WAIT_N;							// processor wait
+	wire DMAI_N;							// DMA is used for load function
+	wire DMAO_N;
+  //wire INT_N;					// currently unused
+	//wire Q;									// Q flip-flop output
+	//wire EF1_N;								// external flag inputs
+	//wire EF2_N;
+	//wire EF3_N;
+	//wire EF4_N;
+	wire XTAL_N;							// PIXIE clock
+	wire TPA,TPB,MWR_N,MRD_N;			// output control signals
+	wire [2:0]N;							// I/O address
+	//wire [7:0]DATA_OUT;					// processor data out
+	wire [7:0]MA;							// memory address
+	wire [7:0]MA1;
+	wire [1:0]SC;							// state code
+	wire OE_N;								// output enable signal
+	wire [2:0]CYCLE;						// for debugging
+	//wire [7:0]DATA_IN;					// processor data in
+   //*** 1802 processor connections
+	cdp1802new U1
+	(
+		.clk					(clk_sys),	// processor clock
+		.clr_n				(~reset),
+		.wait_n				(WAIT_N),
+		.dmai_n				(DMAI_N),
+		.dmao_n				(DMAO_N),
+		.int_n				(INT_N),
+		.ef1_n				(~EF[0]),
+		.ef2_n				(~EF[1]),
+		.ef3_n				(~EF[2]),
+		.ef4_n				(~EF[3]),
+		.data_in			(ram_q),
+		.xtal_n				(XTAL_N),	// clock out to PIXIE
+		.tpa					(TPA),
+		.tpb					(TPB),
+		.mwr_n				(MWR_N),
+		.mrd_n				(MRD_N),
+		.sc					  (SC),
+		.q						(Q),
+		.n_out				(N),
+		.data_out			(ram_d),
+		.ma					  (ram_a),    
+		.ma1					(MA1),	// latched upper address
+		.oe_n					(OE_N),	// external tri-state control
+		.cycle_out		(CYCLE)
+	);
+
 
 /*
 cosmac cosmac (
@@ -227,7 +322,7 @@ reg cpu_wr;
 //reg clk_mem;
 //assign clk_mem = ioctl_download ? clk_vid : clk_sys;
 
-assign cpu_wr = (ram_a[11:0] >= 12'h800 && ram_a[11:0] < 12'hA00) ? ram_wr : 1'b0;
+assign cpu_wr = (ram_a[11:0] >= 12'h800 && ram_a[11:0] < 12'hA00) ? MWR_N : 1'b0;
 dpram #(8, 12) dpram
 (
 	.clk_sys(clk_sys),

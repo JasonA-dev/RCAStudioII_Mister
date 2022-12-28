@@ -55,13 +55,11 @@ CC_OPT = -O
 V_SRC = \
 	sim.v \
 	$(RTL)/rcastudioii.sv \
-	$(RTL)/cdp1802.v \
-	$(RTL)/cdp1861.v \	
+	$(RTL)/cdp1802new.v \	
 	$(RTL)/dpram.sv \
 	$(RTL)/dma.v \		
 	$(RTL)/rom.v \
-	$(RTL)/pixie/pixie_video_studioii.v \
-	$(RTL)/pixie/pixie_video.v
+	$(RTL)/pixie.v
 
 C_SRC = \
 	sim_main.cpp  \
