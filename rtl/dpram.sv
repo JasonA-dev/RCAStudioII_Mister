@@ -23,39 +23,39 @@ module dpram #(
     parameter data_width_g = 8,
     parameter addr_width_g = 14
 ) (
-    input   wire                        clock,
+    input   wire                        clk_sys,
 
     // Port A
     input   wire                        ram_cs,    
-    input   wire                        wren_a,
-    input   wire    [addr_width_g-1:0]  address_a,
-    input   wire    [data_width_g-1:0]  data_a,
-    output  logic   [data_width_g-1:0]  q_a,
+    input   wire                        ram_we,
+    input   wire    [addr_width_g-1:0]  ram_ad,
+    input   wire    [data_width_g-1:0]  ram_d,
+    output  logic   [data_width_g-1:0]  ram_q,
 
     // Port B
     input   wire                        ram_cs_b,    
-    input   wire                        wren_b,
-    input   wire    [addr_width_g-1:0]  address_b,
-    input   wire    [data_width_g-1:0]  data_b,
-    output  logic   [data_width_g-1:0]  q_b
+    input   wire                        ram_we_b,
+    input   wire    [addr_width_g-1:0]  ram_ad_b,
+    input   wire    [data_width_g-1:0]  ram_d_b,
+    output  logic   [data_width_g-1:0]  ram_q_b
 );
 
 // Shared memory
 logic [data_width_g-1:0] mem [(2**addr_width_g)-1:0];
 
 // Port A
-always @(posedge clock) begin
-	q_a <= mem[address_a];
-    if(wren_a) begin
-        mem[address_a] <= data_a;
+always @(posedge clk_sys) begin
+	ram_q <= mem[ram_ad];
+    if(ram_we) begin
+        mem[ram_ad] <= ram_d;
     end
 end
 
 // Port B
-always @(posedge clock) begin
-	q_b <= mem[address_b];         
-    if(wren_b) begin
-        mem[address_b] <= data_b;
+always @(posedge clk_sys) begin
+	ram_q_b <= mem[ram_ad_b];         
+    if(ram_we_b) begin
+        mem[ram_ad_b] <= ram_d_b;
     end
 end
 

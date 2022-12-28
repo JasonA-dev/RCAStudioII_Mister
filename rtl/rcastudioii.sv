@@ -230,16 +230,17 @@ reg cpu_wr;
 assign cpu_wr = (ram_a[11:0] >= 12'h800 && ram_a[11:0] < 12'hA00) ? ram_wr : 1'b0;
 dpram #(8, 12) dpram
 (
-	.clock(clk_sys),
-	.address_a(ioctl_download ? ioctl_addr[11:0] + (ioctl_index > 0 ? 12'h0400 : 12'h0 ) : ram_a[11:0]),
-	.wren_a(ioctl_wr | cpu_wr),
-	.data_a(ioctl_download ? ioctl_dout : ram_d),
-	.q_a(ram_q),
+	.clk_sys(clk_sys),
 
-	.wren_b(1'b0),
-	.address_b(vram_addr[11:0]),
-	.data_b(),
-	.q_b(video_din)
+	.ram_we(ioctl_wr | cpu_wr),
+	.ram_ad(ioctl_download ? ioctl_addr[11:0] + (ioctl_index > 0 ? 12'h0400 : 12'h0 ) : ram_a[11:0]),  
+	.ram_d(ioctl_download ? ioctl_dout : ram_d),
+	.ram_q(ram_q),
+
+	.ram_we_b(1'b0),
+	.ram_ad_b(vram_addr[11:0]),
+	.ram_d_b(),
+	.ram_q_b(video_din)
 );
 
 ////////////////// DMA //////////////////////////////////////////////////////////////////
