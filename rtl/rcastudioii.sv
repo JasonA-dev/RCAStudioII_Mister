@@ -129,7 +129,7 @@ reg  [9:0] playerB = 10'h0;
 
 ////////////////// CPU //////////////////////////////////////////////////////////////////
 
-reg  [3:0] EF = 4'b1111;
+wire  [3:0] EF; // = 4'b1111;
 assign EF = {playerB[keylatch], playerA[keylatch],1'b1,EFx};
 
 reg  [7:0] cpu_din;
@@ -148,8 +148,8 @@ reg WAIT_N      = 1'b0;
 reg dma_in_req  = 1'b0;
 //reg dma_out_req = 1'b0;
 
-wire TPA;
-wire TPB;
+//wire TPA;
+//wire TPB;
 wire MWR_N;
 wire MRD_N;
 cdp1802 cdp1802 (
@@ -177,10 +177,10 @@ cdp1802 cdp1802 (
   .ram_wr       (ram_wr),       // O MWR_N
   .ram_a        (ram_a),        // O cpu_ram_addr
   .ram_q        (ram_q),        // I DI
-  .ram_d        (ram_d),        // O cpu_ram_dout
+  .ram_d        (ram_d)        // O cpu_ram_dout
 
-  .TPA          (TPA),          // O Timing Pulse  (RAM)
-  .TPB          (TPB)           // O Timing Pulse  (IO)
+  //.TPA          (TPA),          // O Timing Pulse  (RAM)
+  //.TPB          (TPB)           // O Timing Pulse  (IO)
 );
 /*
 cosmac cosmac (
